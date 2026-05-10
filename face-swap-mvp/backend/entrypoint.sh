@@ -17,14 +17,18 @@ RETRY_COUNT=0
 
 # Usa Python para extrair host/porta e testar a conexão TCP
 until python3 -c "
-import socket, os, re
+import socket, os
+from urllib.parse import urlparse
 
 url = os.environ.get('DATABASE_URL', '')
-match = re.search(r'@([^:]+):(\d+)/', url)
-if not match:
+if not url:
     raise SystemExit('DATABASE_URL inválida')
 
-host, port = match.group(1), int(match.group(2))
+parsed = urlparse(url)
+host, port = parsed.hostname, parsed.port
+if not host or port is None:
+    raise SystemExit('DATABASE_URL inválida')
+
 s = socket.create_connection((host, port), timeout=2)
 s.close()
 " 2>/dev/null; do
