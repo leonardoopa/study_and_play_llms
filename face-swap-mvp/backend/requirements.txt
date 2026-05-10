@@ -1,0 +1,23 @@
+# =====================================================
+# Dependências Python — Face Swap MVP (FASE 1: mínimo)
+# =====================================================
+# Nas fases seguintes serão adicionados:
+# - insightface, onnxruntime (FASE 3 — face swap)
+# - python-jose, passlib, bcrypt (FASE 4 — auth)
+# - gfpgan (FASE 7 — enhancer)
+
+# --- Web Framework ---
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+
+# --- Banco de dados (já incluído para validar conexão) ---
+sqlalchemy[asyncio]==2.0.35
+asyncpg==0.29.0
+alembic==1.13.2
+
+# --- Validação ---
+pydantic[email]==2.13.4
+
+# --- Utilidades ---
+python-dotenv==1.0.1
+python-multipart==0.0.12
