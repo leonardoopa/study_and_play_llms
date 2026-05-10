@@ -6,6 +6,24 @@ echo " Face Swap MVP — Backend Startup"
 echo "=========================================="
 
 # ------------------------------------------------------------------
+# 0. Baixa modelos ONNX se não existirem
+# ------------------------------------------------------------------
+echo "[0/3] Verificando modelos..."
+
+MODEL_DIR="/app/models"
+SWAP_MODEL="${MODEL_DIR}/inswapper_128.onnx"
+
+if [ ! -f "${SWAP_MODEL}" ]; then
+    echo "  Baixando inswapper_128.onnx do HuggingFace..."
+    mkdir -p "${MODEL_DIR}"
+    curl -L -o "${SWAP_MODEL}" \
+        "https://huggingface.co/ezioruan/inswapper_128.onnx/resolve/main/inswapper_128.onnx"
+    echo "  Download concluído! ($(du -h "${SWAP_MODEL}" | cut -f1))"
+else
+    echo "  inswapper_128.onnx já existe ($(du -h "${SWAP_MODEL}" | cut -f1))"
+fi
+
+# ------------------------------------------------------------------
 # 1. Aguarda o PostgreSQL aceitar conexões (até 30 segundos)
 #    Nota: O docker-compose já usa healthcheck/depends_on, mas este
 #    script serve como fallback para execuções fora do compose.
