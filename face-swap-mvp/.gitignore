@@ -1,0 +1,32 @@
+# Variáveis de ambiente (nunca commitar)
+.env
+
+# Modelos ONNX (pesados demais para git)
+models/*.onnx
+
+# Uploads de usuários
+uploads/*
+!uploads/.gitkeep
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Docker volumes
+pgdata/
+
+# IDE
+.vscode/
+.idea/
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
