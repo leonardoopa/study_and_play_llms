@@ -21,7 +21,6 @@ pgdata/
 # IDE
 .vscode/
 .idea/
-.venv/
 
 # Environments
 .env

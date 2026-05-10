@@ -30,7 +30,7 @@ class FaceTarget(Base):
         Text, nullable=False
     )
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utcnow
+        DateTime(timezone=True), default=utcnow, nullable=False
     )
 
     # --- Relacionamentos ---

@@ -29,7 +29,7 @@ class SwapSession(Base):
         nullable=False,
     )
     started_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utcnow
+        DateTime(timezone=True), default=utcnow, nullable=False
     )
     ended_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
