@@ -1,4 +1,5 @@
-# study_and_play_llms# Estudo e Brincadeira com LLMs
+# study_and_play_llms
+Estudo e Brincadeira com LLMs
 
 Este repositório é dedicado à exploração prática e experimental de Large Language Models (LLMs). O objetivo é entender como diferentes modelos funcionam, testar suas capacidades e criar projetos interessantes utilizando suas APIs.
 
