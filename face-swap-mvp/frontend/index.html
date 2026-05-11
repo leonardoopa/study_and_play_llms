@@ -666,18 +666,30 @@
             };
         }
 
-        // Loop principal que captura frame e manda pro WS
+        // Canvas oculto para extração de frames da webcam sem piscar a tela principal
+        const hiddenCanvas = document.createElement('canvas');
+        const hiddenCtx = hiddenCanvas.getContext('2d');
+
         async function sendFrameLoop() {
             if (!isStreaming || !ws || ws.readyState !== WebSocket.OPEN) return;
 
-            // BACKPRESSURE: Se o servidor ainda não respondeu ao frame anterior, pula este.
-            // Impede que a fila do WebSocket lote e cause lag massivo (delay acumulado).
+            // BACKPRESSURE: Se o servidor ainda não respondeu, pula
             if (!isWaitingForServer) {
-                // Desenha webcam (invisível) no canvas para extrair a imagem
-                ctx.drawImage(webcamVideo, 0, 0, outputCanvas.width, outputCanvas.height);
+                // Configura o canvas oculto com resolução menor (480x360) para dobrar a velocidade
+                // do envio, decodificação e detecção de rosto no servidor!
+                const targetWidth = 480;
+                const targetHeight = 360;
                 
-                // Extrai blob JPEG de baixa qualidade para enviar rápido
-                outputCanvas.toBlob((blob) => {
+                if (hiddenCanvas.width !== targetWidth) {
+                    hiddenCanvas.width = targetWidth;
+                    hiddenCanvas.height = targetHeight;
+                }
+                
+                // Desenha a webcam redimensionada no canvas OCULTO
+                hiddenCtx.drawImage(webcamVideo, 0, 0, targetWidth, targetHeight);
+                
+                // Extrai blob JPEG bem leve
+                hiddenCanvas.toBlob((blob) => {
                     if (blob) {
                         isWaitingForServer = true;
                         ws.send(blob);
@@ -685,7 +697,6 @@
                 }, 'image/jpeg', 0.7);
             }
 
-            // Pede ao browser para chamar novamente no próximo render (max 60fps)
             requestAnimationFrame(sendFrameLoop);
         }
 

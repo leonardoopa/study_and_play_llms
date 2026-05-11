@@ -238,11 +238,15 @@ class FaceSwapEngine:
 
         target_face = self.get_best_face(frame)
         if target_face is None:
+            logger.warning("No face detected in frame!")
             return frame  # Sem rosto no frame, retorna original
 
         result = self._swapper.get(
             frame.copy(), target_face, source_face, paste_back=True
         )
+        if result is None:
+            logger.error("Swapper returned None!")
+            return frame
 
         if enhance and self._enhancer is not None:
             result_face = self.get_best_face(result)
