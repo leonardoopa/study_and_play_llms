@@ -20,7 +20,7 @@ pydantic[email]==2.13.4
 
 # --- Face Swap Engine (FASE 3) ---
 insightface==0.7.3
-onnxruntime==1.18.0
+onnxruntime-gpu==1.18.0
 opencv-python==4.10.0.84
 numpy>=1.23.5,<2
 

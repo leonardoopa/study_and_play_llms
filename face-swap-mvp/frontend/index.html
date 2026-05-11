@@ -1,141 +1,707 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Face Swap em tempo real via webcam — MVP">
-    <title>Face Swap MVP</title>
+    <title>Real-Time Face Swap MVP</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Vanilla CSS com Design System Premium (Dark Mode/Glassmorphism) -->
     <style>
-        /* ========================================
-           FASE 1: Placeholder visual mínimo
-           Será substituído por UI completa na FASE 6
-           ======================================== */
-        *,
-        *::before,
-        *::after {
+        :root {
+            /* Palette: Vibrant & Dark */
+            --bg-color: #0B0E14;
+            --surface-color: rgba(22, 27, 34, 0.6);
+            --surface-border: rgba(255, 255, 255, 0.08);
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --accent: #ec4899;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --danger: #ef4444;
+            --success: #10b981;
+            
+            /* Typography */
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --font-display: 'Outfit', var(--font-sans);
+        }
+
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
         }
 
         body {
-            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
-            color: #e0e0e0;
+            font-family: var(--font-sans);
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.15) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: var(--text-main);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            padding: 2rem;
+            line-height: 1.5;
         }
 
-        .container {
+        /* Header */
+        header {
             text-align: center;
-            padding: 3rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-            max-width: 500px;
+            margin-bottom: 3rem;
         }
 
         h1 {
-            font-size: 2.5rem;
+            font-family: var(--font-display);
+            font-size: 3.5rem;
             font-weight: 700;
-            background: linear-gradient(90deg, #667eea, #764ba2);
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
         }
 
-        .status {
+        p.subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        /* Container Principal */
+        .app-container {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 2rem;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        /* Painéis Glassmorphism */
+        .panel {
+            background: var(--surface-color);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--surface-border);
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        h2 {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 600;
+            border-bottom: 1px solid var(--surface-border);
+            padding-bottom: 0.75rem;
+        }
+
+        /* --- Seção de Upload (Source Face) --- */
+        .dropzone {
+            border: 2px dashed var(--surface-border);
+            border-radius: 16px;
+            padding: 2rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+        }
+
+        .dropzone:hover, .dropzone.dragover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .dropzone input[type="file"] {
+            display: none;
+        }
+
+        .dropzone-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            opacity: 0.8;
+        }
+
+        .dropzone-text {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .dropzone-text strong {
+            color: var(--primary);
+        }
+
+        #source-preview {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+            z-index: 10;
+        }
+
+        .status-badge {
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            padding: 0.5rem 1.25rem;
-            border-radius: 999px;
-            font-size: 0.9rem;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
             font-weight: 500;
-            margin-top: 1.5rem;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
-        .status--loading {
-            background: rgba(251, 191, 36, 0.15);
+        .status-badge.active {
+            opacity: 1;
+        }
+
+        /* --- Seção de Streaming (Webcam) --- */
+        .video-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #000;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--surface-border);
+        }
+
+        /* O vídeo original (webcam) fica escondido, o canvas mostra o resultado */
+        #webcam-video {
+            display: none; 
+        }
+
+        #output-canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.7);
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            z-index: 20;
+            backdrop-filter: blur(4px);
+            transition: opacity 0.3s ease;
+        }
+
+        .video-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* HUD por cima do vídeo */
+        .hud {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            display: flex;
+            gap: 1rem;
+            z-index: 30;
+        }
+
+        .fps-counter {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            padding: 0.25rem 0.75rem;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.9rem;
             color: #fbbf24;
-            border: 1px solid rgba(251, 191, 36, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .status--ok {
-            background: rgba(52, 211, 153, 0.15);
-            color: #34d399;
-            border: 1px solid rgba(52, 211, 153, 0.3);
+        /* --- Controles --- */
+        .controls-row {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            justify-content: space-between;
         }
 
-        .status--error {
-            background: rgba(239, 68, 68, 0.15);
-            color: #ef4444;
-            border: 1px solid rgba(239, 68, 68, 0.3);
+        button {
+            font-family: var(--font-sans);
+            font-weight: 600;
+            font-size: 1rem;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
 
-        .dot {
-            width: 8px;
-            height: 8px;
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -10px var(--primary);
+        }
+
+        .btn-primary:disabled {
+            background: #475569;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-danger {
+            background: transparent;
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        .btn-danger:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        /* Toggle Switch para o Enhancer */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .toggle-label {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: .3s;
+            border-radius: 24px;
+            border: 1px solid var(--surface-border);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 2px;
+            background-color: white;
+            transition: .3s;
             border-radius: 50%;
-            animation: pulse 1.5s infinite;
         }
 
-        .status--loading .dot { background: #fbbf24; }
-        .status--ok .dot      { background: #34d399; animation: none; }
-        .status--error .dot   { background: #ef4444; animation: none; }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50%      { opacity: 0.3; }
+        input:checked + .slider {
+            background-color: var(--accent);
+            border-color: var(--accent);
         }
 
-        p {
-            color: #9ca3af;
-            line-height: 1.6;
-            margin-top: 0.75rem;
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        input:disabled + .slider {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+            h1 { font-size: 2.5rem; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🎭 Face Swap MVP</h1>
-        <p>Ambiente Docker funcionando.<br>Frontend servido via Nginx.</p>
-        <div id="status" class="status status--loading">
-            <span class="dot"></span>
-            <span id="status-text">Verificando backend…</span>
+
+    <header>
+        <h1>Real-Time Face Swap</h1>
+        <p class="subtitle">Faça upload do rosto alvo e ligue sua webcam</p>
+    </header>
+
+    <div class="app-container">
+        
+        <!-- Painel Lateral: Configurações -->
+        <div class="panel">
+            <h2>1. Rosto de Destino</h2>
+            
+            <div class="dropzone" id="dropzone">
+                <input type="file" id="file-input" accept="image/jpeg, image/png">
+                <div class="dropzone-icon">👤</div>
+                <div class="dropzone-text">
+                    Arraste uma foto aqui ou<br>
+                    <strong>clique para selecionar</strong>
+                </div>
+                <img id="source-preview" alt="Preview">
+            </div>
+
+            <div class="status-badge" id="upload-status">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                Rosto carregado
+            </div>
+
+            <h2>2. Qualidade</h2>
+            
+            <div class="toggle-container">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="enhance-toggle" disabled>
+                    <span class="slider"></span>
+                </label>
+                <span class="toggle-label" id="enhance-label">
+                    GFPGAN Enhancer (HD)<br>
+                    <small style="opacity:0.7">Custa FPS. Desative para + velocidade.</small>
+                </span>
+            </div>
         </div>
+
+        <!-- Painel Principal: Streaming -->
+        <div class="panel">
+            <h2>3. Câmera</h2>
+            
+            <div class="video-container">
+                <div class="video-overlay" id="video-overlay">
+                    Aguardando inicialização...
+                </div>
+                
+                <div class="hud hidden" id="hud">
+                    <div class="fps-counter">FPS: <span id="fps-val">0</span></div>
+                </div>
+
+                <video id="webcam-video" autoplay playsinline muted></video>
+                <canvas id="output-canvas"></canvas>
+            </div>
+
+            <div class="controls-row">
+                <button class="btn-primary" id="btn-start" disabled>
+                    ▶ Iniciar Webcam Swap
+                </button>
+                <button class="btn-danger hidden" id="btn-stop" style="display: none;">
+                    ■ Parar
+                </button>
+            </div>
+        </div>
+
     </div>
 
+    <!-- Script de Lógica -->
     <script>
-        // Faz um GET no healthcheck do backend (via proxy Nginx /api/)
-        // para confirmar que todos os serviços estão rodando.
-        (async function checkBackend() {
-            const statusEl  = document.getElementById('status');
-            const textEl    = document.getElementById('status-text');
+        // API Base URL (proxy pelo Nginx na porta 3000)
+        const API_BASE = '/api';
+        
+        // Elementos UI
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('file-input');
+        const sourcePreview = document.getElementById('source-preview');
+        const uploadStatus = document.getElementById('upload-status');
+        
+        const enhanceToggle = document.getElementById('enhance-toggle');
+        
+        const videoOverlay = document.getElementById('video-overlay');
+        const hud = document.getElementById('hud');
+        const fpsVal = document.getElementById('fps-val');
+        const webcamVideo = document.getElementById('webcam-video');
+        const outputCanvas = document.getElementById('output-canvas');
+        const ctx = outputCanvas.getContext('2d');
+        
+        const btnStart = document.getElementById('btn-start');
+        const btnStop = document.getElementById('btn-stop');
+
+        // Estado
+        let stream = null;
+        let ws = null;
+        let isStreaming = false;
+        let lastFrameTime = 0;
+        let fpsFrames = 0;
+        let lastFpsTime = Date.now();
+        let targetFaceLoaded = false;
+        let isWaitingForServer = false; // Backpressure local
+
+        // ----------------------------------------------------
+        // 1. Upload e Drag-and-Drop
+        // ----------------------------------------------------
+        dropzone.addEventListener('click', () => fileInput.click());
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzone.addEventListener(eventName, () => dropzone.classList.add('dragover'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, () => dropzone.classList.remove('dragover'), false);
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            if (dt.files && dt.files.length > 0) {
+                handleFileUpload(dt.files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files.length > 0) {
+                handleFileUpload(e.target.files[0]);
+            }
+        });
+
+        async function handleFileUpload(file) {
+            // Mostrar preview local rápido
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                sourcePreview.src = e.target.result;
+                sourcePreview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+
+            // Enviar para o servidor
+            const formData = new FormData();
+            formData.append('file', file);
+
+            uploadStatus.classList.remove('active');
+            dropzone.style.opacity = '0.5';
 
             try {
-                const res  = await fetch('/api/health');
+                const res = await fetch(`${API_BASE}/upload-face`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
                 const data = await res.json();
-
-                if (data.status === 'ok') {
-                    statusEl.className = 'status status--ok';
-                    textEl.textContent = 'Backend online ✓';
+                
+                if (data.error) {
+                    alert(`Erro: ${data.error}`);
+                    sourcePreview.style.display = 'none';
+                    targetFaceLoaded = false;
                 } else {
-                    throw new Error('Resposta inesperada');
+                    targetFaceLoaded = true;
+                    uploadStatus.classList.add('active');
+                    btnStart.disabled = false;
+                    
+                    if (data.has_enhancer) {
+                        enhanceToggle.disabled = false;
+                        enhanceToggle.checked = true; // Liga por padrão se existir
+                    }
                 }
             } catch (err) {
-                statusEl.className = 'status status--error';
-                textEl.textContent = 'Backend offline ✗';
-                console.error('Healthcheck falhou:', err);
+                alert("Erro ao conectar com o servidor.");
+                console.error(err);
+            } finally {
+                dropzone.style.opacity = '1';
             }
-        })();
+        }
+
+        // ----------------------------------------------------
+        // 2. Webcam e WebSocket
+        // ----------------------------------------------------
+        btnStart.addEventListener('click', startStreaming);
+        btnStop.addEventListener('click', stopStreaming);
+
+        async function startStreaming() {
+            if (!targetFaceLoaded) {
+                alert("Por favor, faça upload de um rosto primeiro.");
+                return;
+            }
+
+            try {
+                // Pedir permissão e abrir webcam (baixa res para economizar banda)
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: 640, height: 480, frameRate: 15 } 
+                });
+                
+                webcamVideo.srcObject = stream;
+                
+                webcamVideo.onloadedmetadata = () => {
+                    webcamVideo.play().catch(e => console.error("Erro ao dar play no video:", e));
+                    outputCanvas.width = webcamVideo.videoWidth;
+                    outputCanvas.height = webcamVideo.videoHeight;
+                    connectWebSocket();
+                };
+
+                btnStart.style.display = 'none';
+                btnStop.style.display = 'flex';
+                videoOverlay.innerText = "Conectando ao Engine...";
+                
+            } catch (err) {
+                alert("Erro ao acessar webcam. Verifique as permissões.");
+                console.error(err);
+            }
+        }
+
+        function stopStreaming() {
+            isStreaming = false;
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+            
+            ctx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
+            videoOverlay.innerText = "Webcam parada";
+            videoOverlay.classList.remove('hidden');
+            hud.classList.add('hidden');
+            
+            btnStart.style.display = 'flex';
+            btnStop.style.display = 'none';
+        }
+
+        function connectWebSocket() {
+            // Constrói URL WS baseada na origin atual
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const host = window.location.host;
+            const enhanceParam = enhanceToggle.checked ? '?enhance=true' : '?enhance=false';
+            
+            const wsUrl = `${protocol}//${host}${API_BASE}/ws/swap${enhanceParam}`;
+            
+            ws = new WebSocket(wsUrl);
+            ws.binaryType = 'blob';
+
+            ws.onopen = () => {
+                console.log("WebSocket conectado");
+                isStreaming = true;
+                videoOverlay.classList.add('hidden');
+                hud.classList.remove('hidden');
+                
+                // Iniciar loop de captura
+                requestAnimationFrame(sendFrameLoop);
+            };
+
+            ws.onmessage = async (event) => {
+                // Servidor retornou o frame processado (Blob JPEG)
+                const blob = event.data;
+                const img = new Image();
+                img.onload = () => {
+                    ctx.drawImage(img, 0, 0, outputCanvas.width, outputCanvas.height);
+                    URL.revokeObjectURL(img.src);
+                    
+                    // Calcular FPS
+                    fpsFrames++;
+                    const now = Date.now();
+                    if (now - lastFpsTime >= 1000) {
+                        fpsVal.innerText = fpsFrames;
+                        fpsFrames = 0;
+                        lastFpsTime = now;
+                    }
+
+                    // Liberar flag de backpressure local
+                    isWaitingForServer = false;
+                };
+                img.onerror = (err) => {
+                    console.error("Erro ao carregar frame recebido do servidor", err);
+                    isWaitingForServer = false;
+                };
+                img.src = URL.createObjectURL(blob);
+            };
+
+            ws.onerror = (err) => {
+                console.error("Erro no WebSocket:", err);
+                stopStreaming();
+                alert("Erro na conexão com o servidor.");
+            };
+
+            ws.onclose = () => {
+                console.log("WebSocket fechado");
+                if (isStreaming) stopStreaming();
+            };
+        }
+
+        // Loop principal que captura frame e manda pro WS
+        async function sendFrameLoop() {
+            if (!isStreaming || !ws || ws.readyState !== WebSocket.OPEN) return;
+
+            // BACKPRESSURE: Se o servidor ainda não respondeu ao frame anterior, pula este.
+            // Impede que a fila do WebSocket lote e cause lag massivo (delay acumulado).
+            if (!isWaitingForServer) {
+                // Desenha webcam (invisível) no canvas para extrair a imagem
+                ctx.drawImage(webcamVideo, 0, 0, outputCanvas.width, outputCanvas.height);
+                
+                // Extrai blob JPEG de baixa qualidade para enviar rápido
+                outputCanvas.toBlob((blob) => {
+                    if (blob) {
+                        isWaitingForServer = true;
+                        ws.send(blob);
+                    }
+                }, 'image/jpeg', 0.7);
+            }
+
+            // Pede ao browser para chamar novamente no próximo render (max 60fps)
+            requestAnimationFrame(sendFrameLoop);
+        }
+
+        // Se o usuário mudar o toggle no meio, reinicia o WS
+        enhanceToggle.addEventListener('change', () => {
+            if (isStreaming) {
+                ws.close(); // Isso vai dar trigger no onclose, mas vamos reconectar manualmente rápido
+                isStreaming = false;
+                videoOverlay.innerText = "Reconectando com novas configs...";
+                videoOverlay.classList.remove('hidden');
+                
+                setTimeout(() => {
+                    connectWebSocket();
+                }, 500);
+            }
+        });
     </script>
 </body>
 </html>

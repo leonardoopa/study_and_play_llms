@@ -51,10 +51,10 @@ deploy:
 ## Status do Projeto
 
 - [x] FASE 1 — Setup do ambiente Docker
-- [ ] FASE 2 — Banco de dados
-- [ ] FASE 3 — Face Swap Engine
+- [x] FASE 2 — Banco de dados
+- [x] FASE 3 — Face Swap Engine
 - [ ] FASE 4 — Autenticação JWT
-- [ ] FASE 5 — Backend (FastAPI + WebSocket)
-- [ ] FASE 6 — Frontend
+- [x] FASE 5 — Backend (FastAPI + WebSocket)
+- [x] FASE 6 — Frontend
 - [ ] FASE 7 — Integração e ajustes
 - [ ] FASE 8 — Documentação

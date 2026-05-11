@@ -23,6 +23,19 @@ else
     echo "  inswapper_128.onnx já existe ($(du -h "${SWAP_MODEL}" | cut -f1))"
 fi
 
+# GFPGAN — face enhancer (melhora qualidade do rosto swapped)
+ENHANCER_MODEL="${MODEL_DIR}/GFPGANv1.4.onnx"
+
+if [ ! -f "${ENHANCER_MODEL}" ]; then
+    echo "  Baixando GFPGANv1.4.onnx do HuggingFace..."
+    mkdir -p "${MODEL_DIR}"
+    curl -L -o "${ENHANCER_MODEL}" \
+        "https://huggingface.co/hacksider/deep-live-cam/resolve/main/GFPGANv1.4.onnx"
+    echo "  Download concluído! ($(du -h "${ENHANCER_MODEL}" | cut -f1))"
+else
+    echo "  GFPGANv1.4.onnx já existe ($(du -h "${ENHANCER_MODEL}" | cut -f1))"
+fi
+
 # ------------------------------------------------------------------
 # 1. Aguarda o PostgreSQL aceitar conexões (até 30 segundos)
 #    Nota: O docker-compose já usa healthcheck/depends_on, mas este

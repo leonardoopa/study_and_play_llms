@@ -53,13 +53,13 @@ services:
       - ./uploads:/app/uploads  # Imagens de rosto enviadas
       - ./models:/app/models    # Modelos ONNX
     # --- GPU NVIDIA (descomentar se tiver nvidia-docker) ---
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [gpu]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
 
   # -------------------------------------------------------
   # Frontend — Nginx

@@ -9,6 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.controllers.health_controller import router as health_router
+from app.controllers.swap_controller import router as swap_router
 
 
 def create_app() -> FastAPI:
@@ -33,6 +34,7 @@ def create_app() -> FastAPI:
 
     # --- Controllers (routers) ---
     application.include_router(health_router)
+    application.include_router(swap_router, prefix="/api")
     # Futuros controllers serão registrados aqui:
     # application.include_router(auth_router, prefix="/auth", tags=["Auth"])
     # application.include_router(face_router, prefix="/faces", tags=["Faces"])

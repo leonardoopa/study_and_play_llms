@@ -5,7 +5,7 @@ Uso (dentro do container):
     python scripts/test_face_swap.py
 
 Lê source.png e target.png da pasta scripts/test_images/,
-faz o face swap e salva o resultado em scripts/test_images/result.jpg.
+faz o face swap (com e sem enhance) e salva os resultados.
 """
 
 import logging
@@ -35,6 +35,7 @@ TEST_IMAGES_DIR = os.path.join(SCRIPT_DIR, "test_images")
 SOURCE_PATH = os.path.join(TEST_IMAGES_DIR, "source.png")
 TARGET_PATH = os.path.join(TEST_IMAGES_DIR, "target.png")
 RESULT_PATH = os.path.join(TEST_IMAGES_DIR, "result.jpg")
+RESULT_ENHANCED_PATH = os.path.join(TEST_IMAGES_DIR, "result_enhanced.jpg")
 
 
 def main() -> None:
@@ -87,33 +88,51 @@ def main() -> None:
         logger.error("Nenhum rosto detectado na imagem target!")
         sys.exit(1)
 
-    # --- 5. Face Swap ---
+    # --- 5. Face Swap (sem enhance) ---
     t0 = time.perf_counter()
-    result = engine.swap_face(source_img, target_img)
+    result = engine.swap_face(source_img, target_img, enhance=False)
     swap_time = time.perf_counter() - t0
 
     if result is None:
         logger.error("Face swap retornou None!")
         sys.exit(1)
 
-    # --- 6. Salvar resultado ---
     cv2.imwrite(RESULT_PATH, result)
-    logger.info("Resultado salvo em: %s", RESULT_PATH)
+    logger.info("Resultado (sem enhance) salvo em: %s", RESULT_PATH)
+
+    # --- 6. Face Swap (com enhance / GFPGAN) ---
+    enhance_time = 0.0
+    if engine.has_enhancer:
+        t0 = time.perf_counter()
+        result_enhanced = engine.swap_face(source_img, target_img, enhance=True)
+        enhance_time = time.perf_counter() - t0
+
+        if result_enhanced is not None:
+            cv2.imwrite(RESULT_ENHANCED_PATH, result_enhanced)
+            logger.info("Resultado (com GFPGAN) salvo em: %s", RESULT_ENHANCED_PATH)
+        else:
+            logger.warning("Face swap com enhance retornou None!")
+    else:
+        logger.warning("GFPGAN não disponível — pulando teste com enhance.")
 
     # --- 7. Métricas ---
     print()
-    print("=" * 50)
+    print("=" * 55)
     print(" RESULTADO")
-    print("=" * 50)
-    print(f"  Tempo de carregamento dos modelos: {load_time:.2f}s")
-    print(f"  Tempo de inferência (swap):        {swap_time:.3f}s")
-    print(f"  Rostos na source:                  {len(source_faces)}")
-    print(f"  Rostos na target:                  {len(target_faces)}")
-    print(f"  Resultado salvo:                   {RESULT_PATH}")
-    print(f"  Dimensões do resultado:            {result.shape}")
-    print("=" * 50)
+    print("=" * 55)
+    print(f"  Carregamento dos modelos:    {load_time:.2f}s")
+    print(f"  Swap (sem enhance):          {swap_time:.3f}s")
+    if engine.has_enhancer:
+        print(f"  Swap + GFPGAN enhance:       {enhance_time:.3f}s")
+    print(f"  Rostos na source:            {len(source_faces)}")
+    print(f"  Rostos na target:            {len(target_faces)}")
+    print(f"  GFPGAN disponível:           {'✅' if engine.has_enhancer else '❌'}")
+    print(f"  Resultado salvo:             {RESULT_PATH}")
+    if engine.has_enhancer:
+        print(f"  Resultado enhanced salvo:    {RESULT_ENHANCED_PATH}")
+    print("=" * 55)
     print(" ✅ Teste concluído com sucesso!")
-    print("=" * 50)
+    print("=" * 55)
 
 
 if __name__ == "__main__":
