@@ -666,18 +666,26 @@
             };
         }
 
-        // Loop principal que captura frame e manda pro WS
+        // Canvas oculto para extração de frames da webcam sem piscar a tela principal
+        const hiddenCanvas = document.createElement('canvas');
+        const hiddenCtx = hiddenCanvas.getContext('2d');
+
         async function sendFrameLoop() {
             if (!isStreaming || !ws || ws.readyState !== WebSocket.OPEN) return;
 
-            // BACKPRESSURE: Se o servidor ainda não respondeu ao frame anterior, pula este.
-            // Impede que a fila do WebSocket lote e cause lag massivo (delay acumulado).
+            // BACKPRESSURE: Se o servidor ainda não respondeu, pula
             if (!isWaitingForServer) {
-                // Desenha webcam (invisível) no canvas para extrair a imagem
-                ctx.drawImage(webcamVideo, 0, 0, outputCanvas.width, outputCanvas.height);
+                // Configura o canvas oculto
+                if (hiddenCanvas.width !== outputCanvas.width) {
+                    hiddenCanvas.width = outputCanvas.width;
+                    hiddenCanvas.height = outputCanvas.height;
+                }
                 
-                // Extrai blob JPEG de baixa qualidade para enviar rápido
-                outputCanvas.toBlob((blob) => {
+                // Desenha a webcam no canvas OCULTO para enviar ao servidor
+                hiddenCtx.drawImage(webcamVideo, 0, 0, hiddenCanvas.width, hiddenCanvas.height);
+                
+                // Extrai blob JPEG de baixa qualidade
+                hiddenCanvas.toBlob((blob) => {
                     if (blob) {
                         isWaitingForServer = true;
                         ws.send(blob);
@@ -685,7 +693,6 @@
                 }, 'image/jpeg', 0.7);
             }
 
-            // Pede ao browser para chamar novamente no próximo render (max 60fps)
             requestAnimationFrame(sendFrameLoop);
         }
 
