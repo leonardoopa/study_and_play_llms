@@ -20,7 +20,7 @@
             --text-muted: #94a3b8;
             --danger: #ef4444;
             --success: #10b981;
-            
+
             /* Typography */
             --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             --font-display: 'Outfit', var(--font-sans);
@@ -35,7 +35,7 @@
         body {
             font-family: var(--font-sans);
             background-color: var(--bg-color);
-            background-image: 
+            background-image:
                 radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
                 radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.15) 0px, transparent 50%);
             background-attachment: fixed;
@@ -185,7 +185,7 @@
 
         /* O vídeo original (webcam) fica escondido, o canvas mostra o resultado */
         #webcam-video {
-            display: none; 
+            display: none;
         }
 
         #output-canvas {
@@ -372,11 +372,11 @@
     </header>
 
     <div class="app-container">
-        
+
         <!-- Painel Lateral: Configurações -->
         <div class="panel">
             <h2>1. Rosto de Destino</h2>
-            
+
             <div class="dropzone" id="dropzone">
                 <input type="file" id="file-input" accept="image/jpeg, image/png">
                 <div class="dropzone-icon">👤</div>
@@ -393,7 +393,7 @@
             </div>
 
             <h2>2. Qualidade</h2>
-            
+
             <div class="toggle-container">
                 <label class="toggle-switch">
                     <input type="checkbox" id="enhance-toggle" disabled>
@@ -409,12 +409,12 @@
         <!-- Painel Principal: Streaming -->
         <div class="panel">
             <h2>3. Câmera</h2>
-            
+
             <div class="video-container">
                 <div class="video-overlay" id="video-overlay">
                     Aguardando inicialização...
                 </div>
-                
+
                 <div class="hud hidden" id="hud">
                     <div class="fps-counter">FPS: <span id="fps-val">0</span></div>
                 </div>
@@ -439,22 +439,22 @@
     <script>
         // API Base URL (proxy pelo Nginx na porta 3000)
         const API_BASE = '/api';
-        
+
         // Elementos UI
         const dropzone = document.getElementById('dropzone');
         const fileInput = document.getElementById('file-input');
         const sourcePreview = document.getElementById('source-preview');
         const uploadStatus = document.getElementById('upload-status');
-        
+
         const enhanceToggle = document.getElementById('enhance-toggle');
-        
+
         const videoOverlay = document.getElementById('video-overlay');
         const hud = document.getElementById('hud');
         const fpsVal = document.getElementById('fps-val');
         const webcamVideo = document.getElementById('webcam-video');
         const outputCanvas = document.getElementById('output-canvas');
         const ctx = outputCanvas.getContext('2d');
-        
+
         const btnStart = document.getElementById('btn-start');
         const btnStop = document.getElementById('btn-stop');
 
@@ -472,7 +472,7 @@
         // 1. Upload e Drag-and-Drop
         // ----------------------------------------------------
         dropzone.addEventListener('click', () => fileInput.click());
-        
+
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             dropzone.addEventListener(eventName, preventDefaults, false);
         });
@@ -524,9 +524,9 @@
                     method: 'POST',
                     body: formData
                 });
-                
+
                 const data = await res.json();
-                
+
                 if (data.error) {
                     alert(`Erro: ${data.error}`);
                     sourcePreview.style.display = 'none';
@@ -535,7 +535,7 @@
                     targetFaceLoaded = true;
                     uploadStatus.classList.add('active');
                     btnStart.disabled = false;
-                    
+
                     if (data.has_enhancer) {
                         enhanceToggle.disabled = false;
                         enhanceToggle.checked = true; // Liga por padrão se existir
@@ -563,12 +563,12 @@
 
             try {
                 // Pedir permissão e abrir webcam (baixa res para economizar banda)
-                stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { width: 640, height: 480, frameRate: 15 } 
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: 640, height: 480, frameRate: 15 }
                 });
-                
+
                 webcamVideo.srcObject = stream;
-                
+
                 webcamVideo.onloadedmetadata = () => {
                     webcamVideo.play().catch(e => console.error("Erro ao dar play no video:", e));
                     outputCanvas.width = webcamVideo.videoWidth;
@@ -579,7 +579,7 @@
                 btnStart.style.display = 'none';
                 btnStop.style.display = 'flex';
                 videoOverlay.innerText = "Conectando ao Engine...";
-                
+
             } catch (err) {
                 alert("Erro ao acessar webcam. Verifique as permissões.");
                 console.error(err);
@@ -596,12 +596,12 @@
                 ws.close();
                 ws = null;
             }
-            
+
             ctx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
             videoOverlay.innerText = "Webcam parada";
             videoOverlay.classList.remove('hidden');
             hud.classList.add('hidden');
-            
+
             btnStart.style.display = 'flex';
             btnStop.style.display = 'none';
         }
@@ -611,9 +611,9 @@
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             const host = window.location.host;
             const enhanceParam = enhanceToggle.checked ? '?enhance=true' : '?enhance=false';
-            
+
             const wsUrl = `${protocol}//${host}${API_BASE}/ws/swap${enhanceParam}`;
-            
+
             ws = new WebSocket(wsUrl);
             ws.binaryType = 'blob';
 
@@ -622,7 +622,7 @@
                 isStreaming = true;
                 videoOverlay.classList.add('hidden');
                 hud.classList.remove('hidden');
-                
+
                 // Iniciar loop de captura
                 requestAnimationFrame(sendFrameLoop);
             };
@@ -634,7 +634,7 @@
                 img.onload = () => {
                     ctx.drawImage(img, 0, 0, outputCanvas.width, outputCanvas.height);
                     URL.revokeObjectURL(img.src);
-                    
+
                     // Calcular FPS
                     fpsFrames++;
                     const now = Date.now();
@@ -679,15 +679,15 @@
                 // do envio, decodificação e detecção de rosto no servidor!
                 const targetWidth = 480;
                 const targetHeight = 360;
-                
+
                 if (hiddenCanvas.width !== targetWidth) {
                     hiddenCanvas.width = targetWidth;
                     hiddenCanvas.height = targetHeight;
                 }
-                
+
                 // Desenha a webcam redimensionada no canvas OCULTO
                 hiddenCtx.drawImage(webcamVideo, 0, 0, targetWidth, targetHeight);
-                
+
                 // Extrai blob JPEG bem leve
                 hiddenCanvas.toBlob((blob) => {
                     if (blob) {
@@ -707,7 +707,7 @@
                 isStreaming = false;
                 videoOverlay.innerText = "Reconectando com novas configs...";
                 videoOverlay.classList.remove('hidden');
-                
+
                 setTimeout(() => {
                     connectWebSocket();
                 }, 500);

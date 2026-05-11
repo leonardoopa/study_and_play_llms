@@ -78,8 +78,11 @@ def main() -> None:
     source_faces = engine.detect_faces(source_img)
     target_faces = engine.detect_faces(target_img)
 
-    logger.info("Rostos detectados — Source: %d, Target: %d",
-                len(source_faces), len(target_faces))
+    logger.info(
+        "Rostos detectados — Source: %d, Target: %d",
+        len(source_faces),
+        len(target_faces),
+    )
 
     if not source_faces:
         logger.error("Nenhum rosto detectado na imagem source!")
