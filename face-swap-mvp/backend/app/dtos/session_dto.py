@@ -10,11 +10,13 @@ from pydantic import BaseModel, ConfigDict
 
 class SessionCreateDTO(BaseModel):
     """Dados necessários para iniciar uma sessão de face swap."""
+
     face_target_id: uuid.UUID
 
 
 class SessionResponseDTO(BaseModel):
     """Dados retornados ao cliente sobre uma sessão."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID

@@ -6,9 +6,7 @@ Endpoints:
 - WS   /ws/swap      → recebe frames da webcam, faz swap, retorna frames processados
 """
 
-import asyncio
 import logging
-import time
 from typing import Optional
 
 import cv2
@@ -25,7 +23,7 @@ router = APIRouter(tags=["Swap"])
 # -------------------------------------------------------
 # Estado em memória (MVP — sem auth, sem multi-user)
 # -------------------------------------------------------
-_source_face = None        # Objeto Face do InsightFace (pré-computado)
+_source_face = None  # Objeto Face do InsightFace (pré-computado)
 _source_preview: Optional[bytes] = None  # JPEG preview da source face
 _engine: Optional[FaceSwapEngine] = None
 
@@ -136,9 +134,9 @@ async def websocket_swap(
     logger.info("WebSocket conectado (enhance=%s)", enhance)
 
     if _source_face is None:
-        await websocket.send_json({
-            "error": "Nenhum rosto source carregado. Use POST /upload-face primeiro."
-        })
+        await websocket.send_json(
+            {"error": "Nenhum rosto source carregado. Use POST /upload-face primeiro."}
+        )
         await websocket.close()
         return
 
@@ -162,7 +160,10 @@ async def websocket_swap(
                 frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
                 if frame is None:
-                    logger.warning("Decodificação do frame falhou. Tamanho do payload: %d bytes", len(data))
+                    logger.warning(
+                        "Decodificação do frame falhou. Tamanho do payload: %d bytes",
+                        len(data),
+                    )
                     # Enviar um frame vazio ou erro para soltar o backpressure
                     await websocket.send_json({"error": "frame invalido"})
                     processing = False
@@ -177,15 +178,14 @@ async def websocket_swap(
                 )
 
                 # Encodar resultado como JPEG
-                _, buf = cv2.imencode(
-                    ".jpg", result, [cv2.IMWRITE_JPEG_QUALITY, 80]
-                )
+                _, buf = cv2.imencode(".jpg", result, [cv2.IMWRITE_JPEG_QUALITY, 80])
 
                 # Enviar frame processado
                 await websocket.send_bytes(buf.tobytes())
 
-            except Exception as e:
+            except Exception:
                 import traceback
+
                 logger.error("Erro processando frame:\n%s", traceback.format_exc())
                 try:
                     await websocket.send_json({"error": "exception"})

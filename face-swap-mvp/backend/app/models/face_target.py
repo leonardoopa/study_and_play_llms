@@ -23,12 +23,8 @@ class FaceTarget(Base):
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
     )
-    filename: Mapped[str] = mapped_column(
-        String(255), nullable=False
-    )
-    file_path: Mapped[str] = mapped_column(
-        Text, nullable=False
-    )
+    filename: Mapped[str] = mapped_column(String(255), nullable=False)
+    file_path: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, nullable=False
     )
