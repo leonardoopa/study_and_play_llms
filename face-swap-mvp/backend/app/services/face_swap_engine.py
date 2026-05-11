@@ -61,6 +61,7 @@ class FaceSwapEngine:
 
         self._face_analyser: Optional[FaceAnalysis] = None
         self._swapper = None
+        self._enhancer = None
         self._models_loaded = False
 
     # -------------------------------------------------------
@@ -104,6 +105,19 @@ class FaceSwapEngine:
         logger.info("Modelo inswapper carregado em %.2fs", t2 - t1)
         logger.info("Total de carregamento: %.2fs", t2 - t0)
 
+        # Carrega enhancer (GFPGAN) se disponível
+        try:
+            from app.services.face_enhancer import FaceEnhancer
+            self._enhancer = FaceEnhancer()
+            self._enhancer.load_model()
+            logger.info("GFPGAN enhancer disponível.")
+        except FileNotFoundError:
+            logger.warning("GFPGAN não encontrado — enhance desabilitado.")
+            self._enhancer = None
+        except Exception as e:
+            logger.warning("Erro ao carregar GFPGAN: %s", e)
+            self._enhancer = None
+
         self._models_loaded = True
 
     # -------------------------------------------------------
@@ -145,6 +159,7 @@ class FaceSwapEngine:
         self,
         source_img: np.ndarray,
         target_img: np.ndarray,
+        enhance: bool = False,
     ) -> Optional[np.ndarray]:
         """
         Troca o rosto da target_img pelo rosto da source_img.
@@ -152,6 +167,7 @@ class FaceSwapEngine:
         Args:
             source_img: imagem com o rosto de ORIGEM (quem quer "virar").
             target_img: imagem com o rosto de DESTINO (onde o rosto será colado).
+            enhance: se True, aplica GFPGAN no resultado.
 
         Returns:
             Imagem resultante com o swap, ou None se algum rosto não for detectado.
@@ -178,6 +194,17 @@ class FaceSwapEngine:
         t1 = time.perf_counter()
         logger.info("Face swap concluído em %.3fs", t1 - t0)
 
+        # Enhance com GFPGAN (pós-processamento)
+        if enhance and self._enhancer is not None:
+            logger.info("Aplicando GFPGAN enhance...")
+            t2 = time.perf_counter()
+            # Re-detecta o rosto no resultado para alinhar o enhance
+            result_face = self.get_best_face(result)
+            if result_face is not None:
+                result = self._enhancer.enhance_face(result, result_face)
+            t3 = time.perf_counter()
+            logger.info("GFPGAN concluído em %.3fs", t3 - t2)
+
         return result
 
     # -------------------------------------------------------
@@ -187,6 +214,7 @@ class FaceSwapEngine:
         self,
         source_face,
         frame: np.ndarray,
+        enhance: bool = False,
     ) -> Optional[np.ndarray]:
         """
         Aplica o face swap num frame de vídeo usando um rosto source
@@ -195,6 +223,7 @@ class FaceSwapEngine:
         Args:
             source_face: objeto Face do InsightFace (pré-computado via get_best_face).
             frame: frame BGR da webcam.
+            enhance: se True, aplica GFPGAN no resultado.
 
         Returns:
             Frame com o rosto trocado, ou o frame original se nenhum
@@ -209,7 +238,18 @@ class FaceSwapEngine:
         result = self._swapper.get(
             frame.copy(), target_face, source_face, paste_back=True
         )
+
+        if enhance and self._enhancer is not None:
+            result_face = self.get_best_face(result)
+            if result_face is not None:
+                result = self._enhancer.enhance_face(result, result_face)
+
         return result
+
+    @property
+    def has_enhancer(self) -> bool:
+        """True se o GFPGAN está carregado e disponível."""
+        return self._enhancer is not None and self._enhancer.is_loaded
 
     # -------------------------------------------------------
     # Propriedades
