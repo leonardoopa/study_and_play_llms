@@ -213,7 +213,7 @@ class FaceEnhancer:
         """BGR uint8 → NCHW float32 [-1, 1]."""
         rgb = aligned_face[:, :, ::-1]  # BGR → RGB (zero-copy view)
         chw = np.transpose(rgb, (2, 0, 1)).astype(np.float32)
-        chw *= (1.0 / 127.5)
+        chw *= 1.0 / 127.5
         chw -= 1.0
         return chw[np.newaxis, ...]  # (1, 3, H, W)
 
@@ -255,8 +255,7 @@ class FaceEnhancer:
 
         # Bounding box no espaço original
         corners = np.array(
-            [[0, 0], [output_size, 0],
-             [output_size, output_size], [0, output_size]],
+            [[0, 0], [output_size, 0], [output_size, output_size], [0, output_size]],
             dtype=np.float32,
         )
         transformed = (inv_matrix[:, :2] @ corners.T).T + inv_matrix[:, 2]
@@ -277,12 +276,18 @@ class FaceEnhancer:
         inv_crop[1, 2] -= y1p
 
         inv_restored = cv2.warpAffine(
-            enhanced_face, inv_crop, (crop_w, crop_h),
-            borderMode=cv2.BORDER_CONSTANT, borderValue=(0, 0, 0),
+            enhanced_face,
+            inv_crop,
+            (crop_w, crop_h),
+            borderMode=cv2.BORDER_CONSTANT,
+            borderValue=(0, 0, 0),
         )
         inv_mask = cv2.warpAffine(
-            self._mask_cache["mask"], inv_crop, (crop_w, crop_h),
-            borderMode=cv2.BORDER_CONSTANT, borderValue=0,
+            self._mask_cache["mask"],
+            inv_crop,
+            (crop_w, crop_h),
+            borderMode=cv2.BORDER_CONSTANT,
+            borderValue=0,
         )
 
         target_crop = frame[y1p:y2p, x1p:x2p]

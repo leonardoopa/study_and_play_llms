@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict
 
 class FaceTargetResponseDTO(BaseModel):
     """Dados retornados ao cliente após upload de uma face target."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID

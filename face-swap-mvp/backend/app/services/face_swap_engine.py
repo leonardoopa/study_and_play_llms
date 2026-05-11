@@ -21,7 +21,6 @@ import os
 import time
 from typing import Optional
 
-import cv2
 import numpy as np
 import insightface
 from insightface.app import FaceAnalysis
@@ -92,7 +91,7 @@ class FaceSwapEngine:
 
         self._face_analyser = FaceAnalysis(
             name="buffalo_l",
-            providers=["CUDAExecutionProvider", "CPUExecutionProvider"]
+            providers=["CUDAExecutionProvider", "CPUExecutionProvider"],
         )
         self._face_analyser.prepare(ctx_id=0, det_size=(640, 640))
 
@@ -101,9 +100,9 @@ class FaceSwapEngine:
 
         logger.info("Carregando modelo inswapper: %s", model_path)
         self._swapper = insightface.model_zoo.get_model(
-            model_path, 
+            model_path,
             download=False,
-            providers=["CUDAExecutionProvider", "CPUExecutionProvider"]
+            providers=["CUDAExecutionProvider", "CPUExecutionProvider"],
         )
 
         t2 = time.perf_counter()
@@ -113,6 +112,7 @@ class FaceSwapEngine:
         # Carrega enhancer (GFPGAN) se disponível
         try:
             from app.services.face_enhancer import FaceEnhancer
+
             self._enhancer = FaceEnhancer()
             self._enhancer.load_model()
             logger.info("GFPGAN enhancer disponível.")
@@ -155,7 +155,9 @@ class FaceSwapEngine:
         if not faces:
             return None
         # Ordena por área do bounding box (maior primeiro)
-        return max(faces, key=lambda f: (f.bbox[2] - f.bbox[0]) * (f.bbox[3] - f.bbox[1]))
+        return max(
+            faces, key=lambda f: (f.bbox[2] - f.bbox[0]) * (f.bbox[3] - f.bbox[1])
+        )
 
     # -------------------------------------------------------
     # Face Swap — estático (duas imagens)
