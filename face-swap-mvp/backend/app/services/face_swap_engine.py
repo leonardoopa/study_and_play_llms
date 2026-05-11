@@ -90,7 +90,10 @@ class FaceSwapEngine:
         logger.info("Carregando FaceAnalysis (buffalo_l)...")
         t0 = time.perf_counter()
 
-        self._face_analyser = FaceAnalysis(name="buffalo_l")
+        self._face_analyser = FaceAnalysis(
+            name="buffalo_l",
+            providers=["CUDAExecutionProvider", "CPUExecutionProvider"]
+        )
         self._face_analyser.prepare(ctx_id=0, det_size=(640, 640))
 
         t1 = time.perf_counter()
@@ -98,7 +101,9 @@ class FaceSwapEngine:
 
         logger.info("Carregando modelo inswapper: %s", model_path)
         self._swapper = insightface.model_zoo.get_model(
-            model_path, download=False
+            model_path, 
+            download=False,
+            providers=["CUDAExecutionProvider", "CPUExecutionProvider"]
         )
 
         t2 = time.perf_counter()

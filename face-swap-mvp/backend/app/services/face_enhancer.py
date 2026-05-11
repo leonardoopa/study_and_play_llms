@@ -100,7 +100,7 @@ class FaceEnhancer:
 
         self._session = onnxruntime.InferenceSession(
             model_path,
-            providers=["CPUExecutionProvider"],
+            providers=["CUDAExecutionProvider", "CPUExecutionProvider"],
         )
 
         input_info = self._session.get_inputs()[0]
