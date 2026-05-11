@@ -3,7 +3,7 @@ repos:
     rev: v0.4.4
     hooks:
       - id: ruff
-        args: ["check .", "--select=PL", "--fix"]
+        args: ["check", ".", "--select=PL", "--fix"]
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.1.0
