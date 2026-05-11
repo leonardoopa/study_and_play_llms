@@ -162,6 +162,9 @@ async def websocket_swap(
                 frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
                 if frame is None:
+                    logger.warning("Decodificação do frame falhou. Tamanho do payload: %d bytes", len(data))
+                    # Enviar um frame vazio ou erro para soltar o backpressure
+                    await websocket.send_json({"error": "frame invalido"})
                     processing = False
                     continue
 
@@ -182,7 +185,12 @@ async def websocket_swap(
                 await websocket.send_bytes(buf.tobytes())
 
             except Exception as e:
-                logger.error("Erro processando frame: %s", e)
+                import traceback
+                logger.error("Erro processando frame:\n%s", traceback.format_exc())
+                try:
+                    await websocket.send_json({"error": "exception"})
+                except Exception:
+                    pass
             finally:
                 processing = False
 

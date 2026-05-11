@@ -570,6 +570,7 @@
                 webcamVideo.srcObject = stream;
                 
                 webcamVideo.onloadedmetadata = () => {
+                    webcamVideo.play().catch(e => console.error("Erro ao dar play no video:", e));
                     outputCanvas.width = webcamVideo.videoWidth;
                     outputCanvas.height = webcamVideo.videoHeight;
                     connectWebSocket();
@@ -644,6 +645,10 @@
                     }
 
                     // Liberar flag de backpressure local
+                    isWaitingForServer = false;
+                };
+                img.onerror = (err) => {
+                    console.error("Erro ao carregar frame recebido do servidor", err);
                     isWaitingForServer = false;
                 };
                 img.src = URL.createObjectURL(blob);
