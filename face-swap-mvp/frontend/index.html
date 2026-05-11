@@ -675,16 +675,20 @@
 
             // BACKPRESSURE: Se o servidor ainda não respondeu, pula
             if (!isWaitingForServer) {
-                // Configura o canvas oculto
-                if (hiddenCanvas.width !== outputCanvas.width) {
-                    hiddenCanvas.width = outputCanvas.width;
-                    hiddenCanvas.height = outputCanvas.height;
+                // Configura o canvas oculto com resolução menor (480x360) para dobrar a velocidade
+                // do envio, decodificação e detecção de rosto no servidor!
+                const targetWidth = 480;
+                const targetHeight = 360;
+                
+                if (hiddenCanvas.width !== targetWidth) {
+                    hiddenCanvas.width = targetWidth;
+                    hiddenCanvas.height = targetHeight;
                 }
                 
-                // Desenha a webcam no canvas OCULTO para enviar ao servidor
-                hiddenCtx.drawImage(webcamVideo, 0, 0, hiddenCanvas.width, hiddenCanvas.height);
+                // Desenha a webcam redimensionada no canvas OCULTO
+                hiddenCtx.drawImage(webcamVideo, 0, 0, targetWidth, targetHeight);
                 
-                // Extrai blob JPEG de baixa qualidade
+                // Extrai blob JPEG bem leve
                 hiddenCanvas.toBlob((blob) => {
                     if (blob) {
                         isWaitingForServer = true;
