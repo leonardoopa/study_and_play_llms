@@ -81,7 +81,7 @@ class FaceSwapEngine:
 
         with self._load_lock:
             if self._models_loaded:
-                logger.info("Modelos já carregados por outra thread -- reutilizando.")
+                logger.info("Modelos já carregados por outra thread — reutilizando.")
                 return
 
             model_path = model_path or DEFAULT_MODEL_PATH
@@ -118,6 +118,7 @@ class FaceSwapEngine:
                 logger.exception("Falha ao carregar modelos críticos do face swap engine.")
                 self._face_analyser = None
                 self._swapper = None
+                self._models_loaded = False
                 raise
 
             # Carrega enhancer (GFPGAN) se disponível
