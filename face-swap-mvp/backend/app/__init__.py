@@ -6,8 +6,10 @@ e inclui os controllers (routers).
 """
 
 from fastapi import FastAPI
+# pyrefly: ignore [missing-import]
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.controllers.auth_controller import router as auth_router
 from app.controllers.health_controller import router as health_router
 from app.controllers.swap_controller import router as swap_router
 
@@ -34,9 +36,9 @@ def create_app() -> FastAPI:
 
     # --- Controllers (routers) ---
     application.include_router(health_router)
+    application.include_router(auth_router, prefix="/api")
     application.include_router(swap_router, prefix="/api")
     # Futuros controllers serão registrados aqui:
-    # application.include_router(auth_router, prefix="/auth", tags=["Auth"])
     # application.include_router(face_router, prefix="/faces", tags=["Faces"])
     # application.include_router(session_router, prefix="/sessions", tags=["Sessions"])
 
