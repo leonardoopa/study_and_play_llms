@@ -115,6 +115,7 @@ class FaceSwapEngine:
                 logger.info("Modelo inswapper carregado em %.2fs", t2 - t1)
                 logger.info("Total de carregamento: %.2fs", t2 - t0)
             except Exception:
+                logger.exception("Falha ao carregar modelos críticos do face swap engine.")
                 self._face_analyser = None
                 self._swapper = None
                 self._enhancer = None
