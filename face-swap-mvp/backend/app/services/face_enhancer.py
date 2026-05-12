@@ -20,6 +20,7 @@ Uso:
 
 import logging
 import os
+import threading
 import time
 from typing import Optional
 
@@ -77,6 +78,7 @@ class FaceEnhancer:
         self._align_size: int = 512
         self._model_loaded = False
         self._mask_cache: dict = {"mask": None, "size": 0}
+        self._load_lock = threading.Lock()
 
     # -------------------------------------------------------
     # Carregamento do modelo
@@ -84,40 +86,51 @@ class FaceEnhancer:
     def load_model(self, model_path: Optional[str] = None) -> None:
         """Carrega o modelo GFPGAN ONNX."""
         if self._model_loaded:
-            logger.info("GFPGAN já carregado — reutilizando.")
             return
 
-        model_path = model_path or DEFAULT_ENHANCER_PATH
+        with self._load_lock:
+            if self._model_loaded:
+                logger.info("GFPGAN já carregado por outra thread — reutilizando.")
+                return
 
-        if not os.path.isfile(model_path):
-            raise FileNotFoundError(
-                f"Modelo GFPGAN não encontrado: {model_path}\n"
-                "Baixe o GFPGANv1.4.onnx e coloque na pasta models/."
-            )
+            model_path = model_path or DEFAULT_ENHANCER_PATH
 
-        logger.info("Carregando GFPGAN: %s", model_path)
-        t0 = time.perf_counter()
+            if not os.path.isfile(model_path):
+                raise FileNotFoundError(
+                    f"Modelo GFPGAN não encontrado: {model_path}\n"
+                    "Baixe o GFPGANv1.4.onnx e coloque na pasta models/."
+                )
 
-        self._session = onnxruntime.InferenceSession(
-            model_path,
-            providers=["CUDAExecutionProvider", "CPUExecutionProvider"],
-        )
+            logger.info("Carregando GFPGAN: %s", model_path)
+            t0 = time.perf_counter()
 
-        input_info = self._session.get_inputs()[0]
-        self._input_name = input_info.name
+            try:
+                self._session = onnxruntime.InferenceSession(
+                    model_path,
+                    providers=["CUDAExecutionProvider", "CPUExecutionProvider"],
+                )
 
-        # Determina resolução do modelo
-        try:
-            self._align_size = int(input_info.shape[2])
-            if self._align_size <= 0:
-                self._align_size = 512
-        except (ValueError, TypeError, IndexError):
-            self._align_size = 512
+                input_info = self._session.get_inputs()[0]
+                self._input_name = input_info.name
 
-        t1 = time.perf_counter()
-        logger.info("GFPGAN carregado em %.2fs (input: %s)", t1 - t0, input_info.shape)
+                # Determina resolução do modelo
+                try:
+                    self._align_size = int(input_info.shape[2])
+                    if self._align_size <= 0:
+                        self._align_size = 512
+                except (ValueError, TypeError, IndexError):
+                    self._align_size = 512
 
-        self._model_loaded = True
+                t1 = time.perf_counter()
+                logger.info("GFPGAN carregado em %.2fs (input: %s)", t1 - t0, input_info.shape)
+
+                self._model_loaded = True
+            except Exception:
+                logger.exception("Falha ao carregar modelo GFPGAN.")
+                self._session = None
+                self._input_name = None
+                self._model_loaded = False
+                raise
 
     # -------------------------------------------------------
     # Enhance de um rosto
