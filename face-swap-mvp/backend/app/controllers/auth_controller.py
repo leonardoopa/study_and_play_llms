@@ -98,7 +98,7 @@ async def refresh_token(
     """
     stmt = select(RefreshToken).where(
         RefreshToken.token == data.refresh_token,
-        RefreshToken.revoked == False,
+        RefreshToken.revoked.is_(False),
     )
     result = await db.execute(stmt)
     db_token = result.scalar_one_or_none()
