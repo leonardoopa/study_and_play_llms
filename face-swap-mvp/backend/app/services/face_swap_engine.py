@@ -77,12 +77,11 @@ class FaceSwapEngine:
                         Se None, usa DEFAULT_MODEL_PATH.
         """
         if self._models_loaded:
-            logger.info("Modelos já carregados — reutilizando.")
             return
 
         with self._load_lock:
             if self._models_loaded:
-                logger.info("Modelos já carregados — reutilizando.")
+                logger.info("Modelos já carregados por outra thread — reutilizando.")
                 return
 
             model_path = model_path or DEFAULT_MODEL_PATH
@@ -95,26 +94,31 @@ class FaceSwapEngine:
 
             logger.info("Carregando FaceAnalysis (buffalo_l)...")
             t0 = time.perf_counter()
+            try:
+                self._face_analyser = FaceAnalysis(
+                    name="buffalo_l",
+                    providers=["CUDAExecutionProvider", "CPUExecutionProvider"],
+                )
+                self._face_analyser.prepare(ctx_id=0, det_size=(640, 640))
 
-            self._face_analyser = FaceAnalysis(
-                name="buffalo_l",
-                providers=["CUDAExecutionProvider", "CPUExecutionProvider"],
-            )
-            self._face_analyser.prepare(ctx_id=0, det_size=(640, 640))
+                t1 = time.perf_counter()
+                logger.info("FaceAnalysis carregado em %.2fs", t1 - t0)
 
-            t1 = time.perf_counter()
-            logger.info("FaceAnalysis carregado em %.2fs", t1 - t0)
+                logger.info("Carregando modelo inswapper: %s", model_path)
+                self._swapper = insightface.model_zoo.get_model(
+                    model_path,
+                    download=False,
+                    providers=["CUDAExecutionProvider", "CPUExecutionProvider"],
+                )
 
-            logger.info("Carregando modelo inswapper: %s", model_path)
-            self._swapper = insightface.model_zoo.get_model(
-                model_path,
-                download=False,
-                providers=["CUDAExecutionProvider", "CPUExecutionProvider"],
-            )
-
-            t2 = time.perf_counter()
-            logger.info("Modelo inswapper carregado em %.2fs", t2 - t1)
-            logger.info("Total de carregamento: %.2fs", t2 - t0)
+                t2 = time.perf_counter()
+                logger.info("Modelo inswapper carregado em %.2fs", t2 - t1)
+                logger.info("Total de carregamento: %.2fs", t2 - t0)
+            except Exception:
+                self._face_analyser = None
+                self._swapper = None
+                self._enhancer = None
+                raise
 
             # Carrega enhancer (GFPGAN) se disponível
             try:
