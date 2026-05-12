@@ -7,9 +7,9 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 import jwt
+import bcrypt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from passlib.context import CryptContext
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,9 +17,6 @@ from app.config import ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_DAYS, S
 from app.database import get_db
 from app.models.refresh_token import RefreshToken
 from app.models.user import User
-
-# Configuração do Passlib para hashing com Bcrypt
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Esquema de segurança Bearer Token
 security = HTTPBearer()
@@ -29,13 +26,21 @@ ALGORITHM = "HS256"
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verifica se a senha em texto plano corresponde ao hash salvo."""
-    return pwd_context.verify(plain_password, hashed_password)
+    """Verifica se a senha em texto plano corresponde ao hash salvo usando bcrypt nativo."""
+    try:
+        return bcrypt.checkpw(
+            plain_password.encode("utf-8"),
+            hashed_password.encode("utf-8"),
+        )
+    except Exception:
+        return False
 
 
 def get_password_hash(password: str) -> str:
-    """Gera o hash Bcrypt de uma senha."""
-    return pwd_context.hash(password)
+    """Gera o hash Bcrypt nativo de uma senha."""
+    salt = bcrypt.gensalt()
+    hashed_bytes = bcrypt.hashpw(password.encode("utf-8"), salt)
+    return hashed_bytes.decode("utf-8")
 
 
 def create_access_token(user_id: uuid.UUID) -> str:

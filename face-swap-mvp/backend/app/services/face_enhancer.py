@@ -310,6 +310,5 @@ class FaceEnhancer:
 
     def _ensure_loaded(self) -> None:
         if not self._model_loaded:
-            raise RuntimeError(
-                "GFPGAN não carregado. Chame enhancer.load_model() primeiro."
-            )
+            logger.info("GFPGAN não carregado no worker atual. Inicializando lazy load...")
+            self.load_model()

@@ -30,5 +30,4 @@ python-multipart==0.0.12
 
 # --- Autenticação (FASE 4) ---
 pyjwt==2.9.0
-passlib[bcrypt]==1.7.4
 bcrypt==4.2.0

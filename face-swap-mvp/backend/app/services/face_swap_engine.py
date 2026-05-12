@@ -276,6 +276,5 @@ class FaceSwapEngine:
     def _ensure_loaded(self) -> None:
         """Garante que os modelos estão carregados antes de operar."""
         if not self._models_loaded:
-            raise RuntimeError(
-                "Modelos não carregados. Chame engine.load_models() primeiro."
-            )
+            logger.info("Modelos de IA não carregados no worker atual. Inicializando lazy load...")
+            self.load_models()
