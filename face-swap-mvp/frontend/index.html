@@ -812,8 +812,12 @@
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eName => {
             dropzone.addEventListener(eName, e => { e.preventDefault(); e.stopPropagation(); });
         });
-        ['dragenter', 'dragover'].forEach(eName => dropzone.classList.add('dragover'));
-        ['dragleave', 'drop'].forEach(eName => dropzone.classList.remove('dragover'));
+        ['dragenter', 'dragover'].forEach(eName => {
+            dropzone.addEventListener(eName, () => dropzone.classList.add('dragover'));
+        });
+        ['dragleave', 'drop'].forEach(eName => {
+            dropzone.addEventListener(eName, () => dropzone.classList.remove('dragover'));
+        });
 
         dropzone.addEventListener('drop', e => {
             if (e.dataTransfer.files.length) handleFileUpload(e.dataTransfer.files[0]);
