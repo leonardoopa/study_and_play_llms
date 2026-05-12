@@ -898,11 +898,21 @@
             }
         }
 
+        let animationFrameId = null;
+
         function stopStreaming() {
             isStreaming = false;
             isWaitingForServer = false;
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
             if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
-            if (ws) { ws.close(); ws = null; }
+            if (ws) {
+                ws.onclose = null;
+                ws.close();
+                ws = null;
+            }
 
             ctx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
             videoOverlay.innerText = "Câmera parada";
@@ -914,6 +924,11 @@
         }
 
         function connectWebSocket() {
+            if (ws) {
+                ws.onclose = null;
+                ws.close();
+            }
+
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             const host = window.location.host;
             const tParam = encodeURIComponent(accessToken);
@@ -930,7 +945,9 @@
                 isWaitingForServer = false;
                 videoOverlay.classList.add('hidden');
                 hud.classList.remove('hidden');
-                requestAnimationFrame(sendFrameLoop);
+                if (!animationFrameId) {
+                    sendFrameLoop();
+                }
             };
 
             ws.onmessage = async (event) => {
@@ -943,6 +960,7 @@
                             stopStreaming();
                         }
                     } catch(e){}
+                    isWaitingForServer = false;
                     return;
                 }
 
@@ -979,7 +997,10 @@
         const hiddenCtx = hiddenCanvas.getContext('2d');
 
         function sendFrameLoop() {
-            if (!isStreaming || !ws || ws.readyState !== WebSocket.OPEN) return;
+            if (!isStreaming || !ws || ws.readyState !== WebSocket.OPEN) {
+                animationFrameId = null;
+                return;
+            }
 
             if (!isWaitingForServer) {
                 const targetWidth = 480;
@@ -992,23 +1013,30 @@
 
                 hiddenCtx.drawImage(webcamVideo, 0, 0, targetWidth, targetHeight);
                 hiddenCanvas.toBlob(blob => {
-                    if (blob) {
+                    if (blob && isStreaming && ws && ws.readyState === WebSocket.OPEN) {
                         isWaitingForServer = true;
                         ws.send(blob);
                     }
-                }, 'image/jpeg', 0.7);
+                }, 'image/jpeg', 0.65);
             }
 
-            requestAnimationFrame(sendFrameLoop);
+            animationFrameId = requestAnimationFrame(sendFrameLoop);
         }
 
         enhanceToggle.addEventListener('change', () => {
-            if (isStreaming) {
-                ws.close();
+            if (isStreaming && ws) {
                 isStreaming = false;
+                isWaitingForServer = false;
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
+                }
+                ws.onclose = null;
+                ws.close();
+                ws = null;
                 videoOverlay.innerText = "Ajustando pipeline em HD...";
                 videoOverlay.classList.remove('hidden');
-                setTimeout(connectWebSocket, 400);
+                setTimeout(connectWebSocket, 300);
             }
         });
     </script>
