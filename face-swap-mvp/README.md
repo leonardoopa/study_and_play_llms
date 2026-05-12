@@ -53,7 +53,7 @@ deploy:
 - [x] FASE 1 — Setup do ambiente Docker
 - [x] FASE 2 — Banco de dados
 - [x] FASE 3 — Face Swap Engine
-- [ ] FASE 4 — Autenticação JWT
+- [x] FASE 4 — Autenticação JWT
 - [x] FASE 5 — Backend (FastAPI + WebSocket)
 - [x] FASE 6 — Frontend
 - [ ] FASE 7 — Integração e ajustes
