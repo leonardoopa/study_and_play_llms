@@ -900,6 +900,7 @@
 
         function stopStreaming() {
             isStreaming = false;
+            isWaitingForServer = false;
             if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
             if (ws) { ws.close(); ws = null; }
 
@@ -926,6 +927,7 @@
 
             ws.onopen = () => {
                 isStreaming = true;
+                isWaitingForServer = false;
                 videoOverlay.classList.add('hidden');
                 hud.classList.remove('hidden');
                 requestAnimationFrame(sendFrameLoop);
