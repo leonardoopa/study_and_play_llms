@@ -1,18 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Real-Time Face Swap MVP</title>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;700&display=swap" rel="stylesheet">
-    <!-- Vanilla CSS com Design System Premium (Dark Mode/Glassmorphism) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+    <!-- Estilos Premium com Design System Ricos (Dark Mode, Glassmorphism, Gradients) -->
     <style>
         :root {
-            /* Palette: Vibrant & Dark */
+            /* Paleta Premium Vibrant & Dark */
             --bg-color: #0B0E14;
-            --surface-color: rgba(22, 27, 34, 0.6);
+            --surface-color: rgba(22, 27, 34, 0.65);
             --surface-border: rgba(255, 255, 255, 0.08);
+            --surface-border-hover: rgba(255, 255, 255, 0.18);
             --primary: #6366f1;
             --primary-hover: #4f46e5;
             --accent: #ec4899;
@@ -21,7 +22,7 @@
             --danger: #ef4444;
             --success: #10b981;
 
-            /* Typography */
+            /* Tipografia */
             --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             --font-display: 'Outfit', var(--font-sans);
         }
@@ -30,6 +31,7 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            transition: background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
         }
 
         body {
@@ -44,19 +46,89 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 2rem;
+            padding: 0 2rem 2rem 2rem;
             line-height: 1.5;
+            overflow-x: hidden;
         }
 
-        /* Header */
+        /* --- Barra de Navegação Superior --- */
+        nav {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.5rem 0;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--surface-border);
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+            font-size: 0.9rem;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .btn-nav-logout {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--surface-border);
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .btn-nav-logout:hover {
+            color: var(--danger);
+            border-color: var(--danger);
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        /* --- Cabeçalho Geral --- */
         header {
             text-align: center;
-            margin-bottom: 3rem;
+            margin-bottom: 2.5rem;
         }
 
         h1 {
             font-family: var(--font-display);
-            font-size: 3.5rem;
+            font-size: 3rem;
             font-weight: 700;
             letter-spacing: -0.02em;
             background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
@@ -70,52 +142,155 @@
             font-size: 1.1rem;
         }
 
-        /* Container Principal */
-        .app-container {
-            display: grid;
-            grid-template-columns: 350px 1fr;
-            gap: 2rem;
+        /* --- Telas / Views Controladas por Estado --- */
+        .view {
+            display: none;
             width: 100%;
             max-width: 1200px;
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        .view.active {
+            display: flex;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* Painéis Glassmorphism */
         .panel {
             background: var(--surface-color);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--surface-border);
             border-radius: 24px;
-            padding: 2rem;
+            padding: 2.5rem;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             display: flex;
             flex-direction: column;
             gap: 1.5rem;
         }
 
+        /* --- VIEW 1: Autenticação (Login / Cadastro) --- */
+        .auth-container {
+            width: 100%;
+            max-width: 440px;
+        }
+
+        .auth-tabs {
+            display: flex;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.35rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--surface-border);
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 0.65rem;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            border-radius: 8px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+        }
+
+        .auth-tab.active {
+            background: var(--surface-color);
+            color: var(--text-main);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--surface-border-hover);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .form-group input {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--surface-border);
+            padding: 0.85rem 1rem;
+            border-radius: 12px;
+            color: white;
+            font-family: var(--font-sans);
+            font-size: 1rem;
+            outline: none;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2), inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .alert-box {
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        /* --- VIEW 2: Aplicação Principal (Swap Grid) --- */
+        .app-grid {
+            display: grid;
+            grid-template-columns: 360px 1fr;
+            gap: 2rem;
+            width: 100%;
+        }
+
         h2 {
             font-family: var(--font-display);
-            font-size: 1.5rem;
+            font-size: 1.35rem;
             font-weight: 600;
             border-bottom: 1px solid var(--surface-border);
             padding-bottom: 0.75rem;
         }
 
-        /* --- Seção de Upload (Source Face) --- */
+        /* Dropzone */
         .dropzone {
             border: 2px dashed var(--surface-border);
             border-radius: 16px;
             padding: 2rem 1rem;
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 200px;
+            min-height: 220px;
         }
 
         .dropzone:hover, .dropzone.dragover {
@@ -123,31 +298,16 @@
             background: rgba(99, 102, 241, 0.05);
         }
 
-        .dropzone input[type="file"] {
-            display: none;
-        }
+        .dropzone input[type="file"] { display: none; }
 
-        .dropzone-icon {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            opacity: 0.8;
-        }
-
-        .dropzone-text {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-        }
-
-        .dropzone-text strong {
-            color: var(--primary);
-        }
+        .dropzone-icon { font-size: 2.5rem; margin-bottom: 0.75rem; opacity: 0.8; }
+        .dropzone-text { color: var(--text-muted); font-size: 0.9rem; }
+        .dropzone-text strong { color: var(--primary); }
 
         #source-preview {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             object-fit: cover;
             display: none;
             z-index: 10;
@@ -159,20 +319,77 @@
             gap: 0.5rem;
             padding: 0.5rem 1rem;
             border-radius: 9999px;
-            font-size: 0.875rem;
+            font-size: 0.85rem;
             font-weight: 500;
             background: rgba(16, 185, 129, 0.1);
             color: var(--success);
             border: 1px solid rgba(16, 185, 129, 0.2);
             opacity: 0;
-            transition: opacity 0.3s ease;
+        }
+        .status-badge.active { opacity: 1; }
+
+        /* Controles, Botões e Toggles */
+        button {
+            font-family: var(--font-sans);
+            font-weight: 600;
+            font-size: 1rem;
+            padding: 0.85rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
         }
 
-        .status-badge.active {
-            opacity: 1;
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
         }
 
-        /* --- Seção de Streaming (Webcam) --- */
+        .btn-primary:hover {
+            opacity: 0.95;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-primary:disabled {
+            background: #334155;
+            color: #94a3b8;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+        .btn-danger:hover { background: rgba(239, 68, 68, 0.2); }
+
+        /* Toggle Switch */
+        .toggle-container { display: flex; align-items: center; gap: 0.75rem; }
+        .toggle-label { font-size: 0.9rem; color: var(--text-muted); cursor: pointer; line-height: 1.3; }
+        .toggle-switch { position: relative; display: inline-block; width: 48px; height: 24px; flex-shrink: 0; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 24px; border: 1px solid var(--surface-border);
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 2px;
+            background-color: white; border-radius: 50%; transition: 0.3s;
+        }
+        input:checked + .slider { background-color: var(--accent); border-color: var(--accent); }
+        input:checked + .slider:before { transform: translateX(24px); }
+        input:disabled + .slider { opacity: 0.4; cursor: not-allowed; }
+
+        /* Container de Video */
         .video-container {
             position: relative;
             width: 100%;
@@ -181,338 +398,436 @@
             border-radius: 16px;
             overflow: hidden;
             border: 1px solid var(--surface-border);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
         }
 
-        /* O vídeo original (webcam) fica escondido, o canvas mostra o resultado */
-        #webcam-video {
-            display: none;
-        }
-
-        #output-canvas {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
+        #webcam-video { display: none; }
+        #output-canvas { width: 100%; height: 100%; object-fit: cover; display: block; }
 
         .video-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(0, 0, 0, 0.7);
-            color: var(--text-muted);
-            font-size: 1.1rem;
-            z-index: 20;
-            backdrop-filter: blur(4px);
-            transition: opacity 0.3s ease;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(11, 14, 20, 0.85);
+            color: var(--text-muted); font-size: 1.1rem; font-weight: 500;
+            z-index: 20; backdrop-filter: blur(8px);
         }
+        .video-overlay.hidden { opacity: 0; pointer-events: none; }
 
-        .video-overlay.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        /* HUD por cima do vídeo */
-        .hud {
-            position: absolute;
-            top: 1rem;
-            left: 1rem;
-            display: flex;
-            gap: 1rem;
-            z-index: 30;
-        }
-
+        .hud { position: absolute; top: 1rem; left: 1rem; z-index: 30; }
         .fps-counter {
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(8px);
-            padding: 0.25rem 0.75rem;
-            border-radius: 8px;
-            font-family: monospace;
-            font-size: 0.9rem;
-            color: #fbbf24;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(8px);
+            padding: 0.35rem 0.75rem; border-radius: 8px;
+            font-family: monospace; font-size: 0.9rem; font-weight: 600;
+            color: #fbbf24; border: 1px solid rgba(255, 255, 255, 0.1);
         }
+        .hud.hidden { display: none; }
 
-        /* --- Controles --- */
-        .controls-row {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-            justify-content: space-between;
-        }
+        .controls-row { display: flex; gap: 1rem; }
 
-        button {
-            font-family: var(--font-sans);
-            font-weight: 600;
-            font-size: 1rem;
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-            flex: 1;
-        }
-
-        .btn-primary:hover {
-            background: var(--primary-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px -10px var(--primary);
-        }
-
-        .btn-primary:disabled {
-            background: #475569;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .btn-danger {
-            background: transparent;
-            color: var(--danger);
-            border: 1px solid var(--danger);
-        }
-
-        .btn-danger:hover {
-            background: rgba(239, 68, 68, 0.1);
-        }
-
-        /* Toggle Switch para o Enhancer */
-        .toggle-container {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .toggle-label {
-            font-size: 0.95rem;
-            color: var(--text-muted);
-            cursor: pointer;
-        }
-
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 48px;
-            height: 24px;
-        }
-
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(255, 255, 255, 0.1);
-            transition: .3s;
-            border-radius: 24px;
-            border: 1px solid var(--surface-border);
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 18px;
-            width: 18px;
-            left: 3px;
-            bottom: 2px;
-            background-color: white;
-            transition: .3s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider {
-            background-color: var(--accent);
-            border-color: var(--accent);
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(24px);
-        }
-
-        input:disabled + .slider {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* Responsive */
+        /* Responsividade */
         @media (max-width: 900px) {
-            .app-container {
-                grid-template-columns: 1fr;
-            }
-            h1 { font-size: 2.5rem; }
+            .app-grid { grid-template-columns: 1fr; }
+            h1 { font-size: 2.2rem; }
+            nav { padding: 1.25rem 1rem; }
         }
     </style>
 </head>
 <body>
 
+    <!-- Navegação e Perfil -->
+    <nav>
+        <div class="logo">🎭 Face Swap MVP</div>
+        <div class="user-menu" id="user-menu" style="display: none;">
+            <div class="user-info">
+                <div class="avatar" id="nav-avatar">U</div>
+                <span id="nav-email">user@email.com</span>
+            </div>
+            <button class="btn-nav-logout" onclick="handleLogout()">Sair</button>
+        </div>
+    </nav>
+
     <header>
-        <h1>Real-Time Face Swap</h1>
-        <p class="subtitle">Faça upload do rosto alvo e ligue sua webcam</p>
+        <h1>Real-Time Face Swap HD</h1>
+        <p class="subtitle">Substituição de rostos de altíssima fidelidade acelerada por IA</p>
     </header>
 
-    <div class="app-container">
+    <!-- ========================================== -->
+    <!-- VIEW 1: AUTENTICAÇÃO                       -->
+    <!-- ========================================== -->
+    <div class="view" id="view-auth">
+        <div class="panel auth-container">
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="switchAuthTab('login')">Entrar</button>
+                <button class="auth-tab" onclick="switchAuthTab('register')">Criar Conta</button>
+            </div>
 
-        <!-- Painel Lateral: Configurações -->
-        <div class="panel">
-            <h2>1. Rosto de Destino</h2>
+            <!-- Alertas -->
+            <div class="alert-box alert-error" id="auth-error"></div>
+            <div class="alert-box alert-success" id="auth-success"></div>
 
-            <div class="dropzone" id="dropzone">
-                <input type="file" id="file-input" accept="image/jpeg, image/png">
-                <div class="dropzone-icon">👤</div>
-                <div class="dropzone-text">
-                    Arraste uma foto aqui ou<br>
-                    <strong>clique para selecionar</strong>
+            <!-- Form de Login -->
+            <form id="form-login" onsubmit="handleAuthSubmit(event, 'login')">
+                <div class="form-group">
+                    <label for="login-email">E-mail</label>
+                    <input type="email" id="login-email" required placeholder="seu@email.com">
                 </div>
-                <img id="source-preview" alt="Preview">
-            </div>
+                <div class="form-group">
+                    <label for="login-password">Senha</label>
+                    <input type="password" id="login-password" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn-primary" id="btn-submit-login">Acessar Sistema</button>
+            </form>
 
-            <div class="status-badge" id="upload-status">
-                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
-                Rosto carregado
-            </div>
-
-            <h2>2. Qualidade</h2>
-
-            <div class="toggle-container">
-                <label class="toggle-switch">
-                    <input type="checkbox" id="enhance-toggle" disabled>
-                    <span class="slider"></span>
-                </label>
-                <span class="toggle-label" id="enhance-label">
-                    GFPGAN Enhancer (HD)<br>
-                    <small style="opacity:0.7">Custa FPS. Desative para + velocidade.</small>
-                </span>
-            </div>
+            <!-- Form de Cadastro -->
+            <form id="form-register" onsubmit="handleAuthSubmit(event, 'register')" style="display: none;">
+                <div class="form-group">
+                    <label for="reg-email">E-mail</label>
+                    <input type="email" id="reg-email" required placeholder="seu@email.com">
+                </div>
+                <div class="form-group">
+                    <label for="reg-password">Senha</label>
+                    <input type="password" id="reg-password" required minlength="6" placeholder="Mínimo 6 caracteres">
+                </div>
+                <button type="submit" class="btn-primary" id="btn-submit-reg">Cadastrar e Entrar</button>
+            </form>
         </div>
-
-        <!-- Painel Principal: Streaming -->
-        <div class="panel">
-            <h2>3. Câmera</h2>
-
-            <div class="video-container">
-                <div class="video-overlay" id="video-overlay">
-                    Aguardando inicialização...
-                </div>
-
-                <div class="hud hidden" id="hud">
-                    <div class="fps-counter">FPS: <span id="fps-val">0</span></div>
-                </div>
-
-                <video id="webcam-video" autoplay playsinline muted></video>
-                <canvas id="output-canvas"></canvas>
-            </div>
-
-            <div class="controls-row">
-                <button class="btn-primary" id="btn-start" disabled>
-                    ▶ Iniciar Webcam Swap
-                </button>
-                <button class="btn-danger hidden" id="btn-stop" style="display: none;">
-                    ■ Parar
-                </button>
-            </div>
-        </div>
-
     </div>
 
-    <!-- Script de Lógica -->
+
+    <!-- ========================================== -->
+    <!-- VIEW 2: APLICAÇÃO PRINCIPAL                -->
+    <!-- ========================================== -->
+    <div class="view" id="view-app">
+        <div class="app-grid">
+
+            <!-- Coluna Esquerda: Rosto Alvo & Configs -->
+            <div class="panel">
+                <h2>1. Rosto de Destino</h2>
+
+                <div class="dropzone" id="dropzone">
+                    <input type="file" id="file-input" accept="image/jpeg, image/png">
+                    <div class="dropzone-icon">👤</div>
+                    <div class="dropzone-text">
+                        Arraste uma foto aqui ou<br>
+                        <strong>clique para selecionar</strong>
+                    </div>
+                    <img id="source-preview" alt="Preview">
+                </div>
+
+                <div class="status-badge" id="upload-status">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                    Rosto salvo no servidor
+                </div>
+
+                <h2>2. Motor de IA</h2>
+
+                <div class="toggle-container">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="enhance-toggle" disabled>
+                        <span class="slider"></span>
+                    </label>
+                    <span class="toggle-label" onclick="document.getElementById('enhance-toggle').click()">
+                        GFPGAN Enhancer (HD)<br>
+                        <small style="opacity:0.65">Recupera nitidez e pele. Reduz o FPS.</small>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Coluna Direita: Câmera & Streaming -->
+            <div class="panel">
+                <h2>3. Câmera ao Vivo</h2>
+
+                <div class="video-container">
+                    <div class="video-overlay" id="video-overlay">
+                        Faça upload do rosto para começar
+                    </div>
+
+                    <div class="hud hidden" id="hud">
+                        <div class="fps-counter">FPS: <span id="fps-val">0</span></div>
+                    </div>
+
+                    <video id="webcam-video" autoplay playsinline muted></video>
+                    <canvas id="output-canvas"></canvas>
+                </div>
+
+                <div class="controls-row">
+                    <button class="btn-primary" id="btn-start" disabled onclick="startStreaming()">
+                        ▶ Iniciar Streaming Face Swap
+                    </button>
+                    <button class="btn-danger" id="btn-stop" style="display: none;" onclick="stopStreaming()">
+                        ■ Encerrar Sessão
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- LÓGICA DO SISTEMA EM JAVASCRIPT            -->
+    <!-- ========================================== -->
     <script>
-        // API Base URL (proxy pelo Nginx na porta 3000)
         const API_BASE = '/api';
 
-        // Elementos UI
+        // Estado Global de Autenticação
+        let accessToken = localStorage.getItem('access_token');
+        let refreshToken = localStorage.getItem('refresh_token');
+        let currentUser = null;
+        let targetFaceId = null;
+
+        // Elementos de View
+        const viewAuth = document.getElementById('view-auth');
+        const viewApp = document.getElementById('view-app');
+        const userMenu = document.getElementById('user-menu');
+        const navAvatar = document.getElementById('nav-avatar');
+        const navEmail = document.getElementById('nav-email');
+
+        // Elementos Form Autenticação
+        const formLogin = document.getElementById('form-login');
+        const formRegister = document.getElementById('form-register');
+        const authTabs = document.querySelectorAll('.auth-tab');
+        const authError = document.getElementById('auth-error');
+        const authSuccess = document.getElementById('auth-success');
+
+        // Elementos Aplicação
         const dropzone = document.getElementById('dropzone');
         const fileInput = document.getElementById('file-input');
         const sourcePreview = document.getElementById('source-preview');
         const uploadStatus = document.getElementById('upload-status');
-
         const enhanceToggle = document.getElementById('enhance-toggle');
-
         const videoOverlay = document.getElementById('video-overlay');
         const hud = document.getElementById('hud');
         const fpsVal = document.getElementById('fps-val');
         const webcamVideo = document.getElementById('webcam-video');
         const outputCanvas = document.getElementById('output-canvas');
         const ctx = outputCanvas.getContext('2d');
-
         const btnStart = document.getElementById('btn-start');
         const btnStop = document.getElementById('btn-stop');
 
-        // Estado
+        // Streaming Estado
         let stream = null;
         let ws = null;
         let isStreaming = false;
-        let lastFrameTime = 0;
         let fpsFrames = 0;
         let lastFpsTime = Date.now();
-        let targetFaceLoaded = false;
-        let isWaitingForServer = false; // Backpressure local
+        let isWaitingForServer = false;
 
         // ----------------------------------------------------
-        // 1. Upload e Drag-and-Drop
+        // 0. Inicialização (Verifica Sessão)
         // ----------------------------------------------------
-        dropzone.addEventListener('click', () => fileInput.click());
-
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropzone.addEventListener(eventName, preventDefaults, false);
+        window.addEventListener('DOMContentLoaded', async () => {
+            if (accessToken) {
+                // Tenta validar o token existente
+                const valid = await fetchMe();
+                if (valid) {
+                    showView('app');
+                } else if (refreshToken) {
+                    // Tenta atualizar via refresh token
+                    const refreshed = await attemptRefresh();
+                    if (refreshed) {
+                        await fetchMe();
+                        showView('app');
+                    } else {
+                        handleLogout(false);
+                    }
+                } else {
+                    handleLogout(false);
+                }
+            } else {
+                showView('auth');
+            }
         });
 
-        function preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
+        function showView(viewName) {
+            viewAuth.classList.remove('active');
+            viewApp.classList.remove('active');
+
+            if (viewName === 'auth') {
+                viewAuth.classList.add('active');
+                userMenu.style.display = 'none';
+            } else {
+                viewApp.classList.add('active');
+                userMenu.style.display = 'flex';
+                if (currentUser) {
+                    navEmail.innerText = currentUser.email;
+                    navAvatar.innerText = currentUser.email.charAt(0).toUpperCase();
+                }
+            }
         }
 
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropzone.addEventListener(eventName, () => dropzone.classList.add('dragover'), false);
-        });
+        function showAlert(msg, isSuccess = false) {
+            authError.style.display = 'none';
+            authSuccess.style.display = 'none';
+            if (!msg) return;
 
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropzone.addEventListener(eventName, () => dropzone.classList.remove('dragover'), false);
-        });
+            const el = isSuccess ? authSuccess : authError;
+            el.innerText = msg;
+            el.style.display = 'flex';
+        }
 
-        dropzone.addEventListener('drop', (e) => {
-            const dt = e.dataTransfer;
-            if (dt.files && dt.files.length > 0) {
-                handleFileUpload(dt.files[0]);
+        // ----------------------------------------------------
+        // 1. Serviços de Autenticação API
+        // ----------------------------------------------------
+        async function fetchMe() {
+            try {
+                const res = await fetch(`${API_BASE}/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+                if (res.ok) {
+                    currentUser = await res.json();
+                    return true;
+                }
+                return false;
+            } catch (e) {
+                return false;
             }
-        });
+        }
 
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files && e.target.files.length > 0) {
-                handleFileUpload(e.target.files[0]);
+        async function attemptRefresh() {
+            try {
+                const res = await fetch(`${API_BASE}/auth/refresh`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ refresh_token: refreshToken })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    saveTokens(data.access_token, data.refresh_token);
+                    return true;
+                }
+                return false;
+            } catch (e) {
+                return false;
             }
+        }
+
+        function saveTokens(access, refresh) {
+            accessToken = access;
+            refreshToken = refresh;
+            localStorage.setItem('access_token', access);
+            localStorage.setItem('refresh_token', refresh);
+        }
+
+        function switchAuthTab(tab) {
+            showAlert(null);
+            authTabs.forEach(t => t.classList.remove('active'));
+            if (tab === 'login') {
+                authTabs[0].classList.add('active');
+                formLogin.style.display = 'block';
+                formRegister.style.display = 'none';
+            } else {
+                authTabs[1].classList.add('active');
+                formLogin.style.display = 'none';
+                formRegister.style.display = 'block';
+            }
+        }
+
+        async function handleAuthSubmit(e, type) {
+            e.preventDefault();
+            showAlert(null);
+            const btn = e.target.querySelector('button');
+            const origText = btn.innerText;
+            btn.disabled = true;
+            btn.innerText = "Processando...";
+
+            const email = e.target.querySelector('input[type="email"]').value;
+            const password = e.target.querySelector('input[type="password"]').value;
+
+            try {
+                if (type === 'register') {
+                    // 1. Cadastra
+                    const resReg = await fetch(`${API_BASE}/auth/register`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, password })
+                    });
+                    if (!resReg.ok) {
+                        const errData = await resReg.json();
+                        throw new Error(errData.detail || "Erro ao realizar cadastro.");
+                    }
+                    showAlert("Conta criada com sucesso! Entrando...", true);
+                }
+
+                // 2. Faz Login (tanto pro login direto quanto auto após registro)
+                const resLog = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                if (!resLog.ok) {
+                    const errData = await resLog.json();
+                    throw new Error(errData.detail || "Credenciais inválidas.");
+                }
+
+                const data = await resLog.json();
+                saveTokens(data.access_token, data.refresh_token);
+                await fetchMe();
+                showView('app');
+
+            } catch (err) {
+                showAlert(err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = origText;
+            }
+        }
+
+        async function handleLogout(callApi = true) {
+            if (callApi && refreshToken) {
+                try {
+                    await fetch(`${API_BASE}/auth/logout`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ refresh_token: refreshToken })
+                    });
+                } catch (e) {}
+            }
+            if (isStreaming) stopStreaming();
+
+            accessToken = null;
+            refreshToken = null;
+            currentUser = null;
+            targetFaceId = null;
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+
+            // Reseta UI App
+            sourcePreview.style.display = 'none';
+            uploadStatus.classList.remove('active');
+            btnStart.disabled = true;
+            enhanceToggle.disabled = true;
+            enhanceToggle.checked = false;
+            videoOverlay.innerText = "Faça upload do rosto para começar";
+
+            showView('auth');
+        }
+
+
+        // ----------------------------------------------------
+        // 2. Upload e Seleção de Rosto de Destino
+        // ----------------------------------------------------
+        dropzone.addEventListener('click', () => fileInput.click());
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eName => {
+            dropzone.addEventListener(eName, e => { e.preventDefault(); e.stopPropagation(); });
+        });
+        ['dragenter', 'dragover'].forEach(eName => dropzone.classList.add('dragover'));
+        ['dragleave', 'drop'].forEach(eName => dropzone.classList.remove('dragover'));
+
+        dropzone.addEventListener('drop', e => {
+            if (e.dataTransfer.files.length) handleFileUpload(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', e => {
+            if (e.target.files.length) handleFileUpload(e.target.files[0]);
         });
 
         async function handleFileUpload(file) {
-            // Mostrar preview local rápido
+            // Preview local
             const reader = new FileReader();
-            reader.onload = (e) => {
-                sourcePreview.src = e.target.result;
-                sourcePreview.style.display = 'block';
-            };
+            reader.onload = e => { sourcePreview.src = e.target.result; sourcePreview.style.display = 'block'; };
             reader.readAsDataURL(file);
 
-            // Enviar para o servidor
             const formData = new FormData();
             formData.append('file', file);
 
@@ -522,55 +837,53 @@
             try {
                 const res = await fetch(`${API_BASE}/upload-face`, {
                     method: 'POST',
+                    headers: { 'Authorization': `Bearer ${accessToken}` },
                     body: formData
                 });
 
-                const data = await res.json();
+                if (res.status === 401) {
+                    alert("Sua sessão expirou. Faça login novamente.");
+                    handleLogout();
+                    return;
+                }
 
-                if (data.error) {
-                    alert(`Erro: ${data.error}`);
+                const data = await res.json();
+                if (!res.ok || data.error) {
+                    alert(`Erro: ${data.detail || data.error || 'Falha no upload'}`);
                     sourcePreview.style.display = 'none';
-                    targetFaceLoaded = false;
+                    targetFaceId = null;
                 } else {
-                    targetFaceLoaded = true;
+                    targetFaceId = data.face_target_id;
                     uploadStatus.classList.add('active');
                     btnStart.disabled = false;
+                    videoOverlay.innerText = "Pronto para iniciar a câmera";
 
                     if (data.has_enhancer) {
                         enhanceToggle.disabled = false;
-                        enhanceToggle.checked = true; // Liga por padrão se existir
+                        enhanceToggle.checked = true;
                     }
                 }
             } catch (err) {
                 alert("Erro ao conectar com o servidor.");
-                console.error(err);
             } finally {
                 dropzone.style.opacity = '1';
             }
         }
 
-        // ----------------------------------------------------
-        // 2. Webcam e WebSocket
-        // ----------------------------------------------------
-        btnStart.addEventListener('click', startStreaming);
-        btnStop.addEventListener('click', stopStreaming);
 
+        // ----------------------------------------------------
+        // 3. Streaming de Câmera Real-Time e WebSocket
+        // ----------------------------------------------------
         async function startStreaming() {
-            if (!targetFaceLoaded) {
-                alert("Por favor, faça upload de um rosto primeiro.");
-                return;
-            }
+            if (!targetFaceId) return;
 
             try {
-                // Pedir permissão e abrir webcam (baixa res para economizar banda)
                 stream = await navigator.mediaDevices.getUserMedia({
                     video: { width: 640, height: 480, frameRate: 15 }
                 });
-
                 webcamVideo.srcObject = stream;
-
                 webcamVideo.onloadedmetadata = () => {
-                    webcamVideo.play().catch(e => console.error("Erro ao dar play no video:", e));
+                    webcamVideo.play();
                     outputCanvas.width = webcamVideo.videoWidth;
                     outputCanvas.height = webcamVideo.videoHeight;
                     connectWebSocket();
@@ -578,27 +891,20 @@
 
                 btnStart.style.display = 'none';
                 btnStop.style.display = 'flex';
-                videoOverlay.innerText = "Conectando ao Engine...";
+                videoOverlay.innerText = "Autenticando sessão de streaming...";
 
             } catch (err) {
-                alert("Erro ao acessar webcam. Verifique as permissões.");
-                console.error(err);
+                alert("Permissão de câmera negada ou dispositivo indisponível.");
             }
         }
 
         function stopStreaming() {
             isStreaming = false;
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-                stream = null;
-            }
-            if (ws) {
-                ws.close();
-                ws = null;
-            }
+            if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+            if (ws) { ws.close(); ws = null; }
 
             ctx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
-            videoOverlay.innerText = "Webcam parada";
+            videoOverlay.innerText = "Câmera parada";
             videoOverlay.classList.remove('hidden');
             hud.classList.add('hidden');
 
@@ -607,35 +913,43 @@
         }
 
         function connectWebSocket() {
-            // Constrói URL WS baseada na origin atual
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             const host = window.location.host;
-            const enhanceParam = enhanceToggle.checked ? '?enhance=true' : '?enhance=false';
+            const tParam = encodeURIComponent(accessToken);
+            const idParam = encodeURIComponent(targetFaceId);
+            const eParam = enhanceToggle.checked;
 
-            const wsUrl = `${protocol}//${host}${API_BASE}/ws/swap${enhanceParam}`;
+            const wsUrl = `${protocol}//${host}${API_BASE}/ws/swap?token=${tParam}&face_target_id=${idParam}&enhance=${eParam}`;
 
             ws = new WebSocket(wsUrl);
             ws.binaryType = 'blob';
 
             ws.onopen = () => {
-                console.log("WebSocket conectado");
                 isStreaming = true;
                 videoOverlay.classList.add('hidden');
                 hud.classList.remove('hidden');
-
-                // Iniciar loop de captura
                 requestAnimationFrame(sendFrameLoop);
             };
 
             ws.onmessage = async (event) => {
-                // Servidor retornou o frame processado (Blob JPEG)
+                // Pode ser JSON com erro ou Blob com imagem processada
+                if (typeof event.data === 'string') {
+                    try {
+                        const msg = JSON.parse(event.data);
+                        if (msg.error) {
+                            alert(`Sessão encerrada: ${msg.error}`);
+                            stopStreaming();
+                        }
+                    } catch(e){}
+                    return;
+                }
+
                 const blob = event.data;
                 const img = new Image();
                 img.onload = () => {
                     ctx.drawImage(img, 0, 0, outputCanvas.width, outputCanvas.height);
                     URL.revokeObjectURL(img.src);
 
-                    // Calcular FPS
                     fpsFrames++;
                     const now = Date.now();
                     if (now - lastFpsTime >= 1000) {
@@ -643,40 +957,29 @@
                         fpsFrames = 0;
                         lastFpsTime = now;
                     }
-
-                    // Liberar flag de backpressure local
                     isWaitingForServer = false;
                 };
-                img.onerror = (err) => {
-                    console.error("Erro ao carregar frame recebido do servidor", err);
-                    isWaitingForServer = false;
-                };
+                img.onerror = () => { isWaitingForServer = false; };
                 img.src = URL.createObjectURL(blob);
             };
 
-            ws.onerror = (err) => {
-                console.error("Erro no WebSocket:", err);
+            ws.onerror = () => {
                 stopStreaming();
-                alert("Erro na conexão com o servidor.");
+                alert("Desconectado do servidor de IA.");
             };
 
             ws.onclose = () => {
-                console.log("WebSocket fechado");
                 if (isStreaming) stopStreaming();
             };
         }
 
-        // Canvas oculto para extração de frames da webcam sem piscar a tela principal
         const hiddenCanvas = document.createElement('canvas');
         const hiddenCtx = hiddenCanvas.getContext('2d');
 
-        async function sendFrameLoop() {
+        function sendFrameLoop() {
             if (!isStreaming || !ws || ws.readyState !== WebSocket.OPEN) return;
 
-            // BACKPRESSURE: Se o servidor ainda não respondeu, pula
             if (!isWaitingForServer) {
-                // Configura o canvas oculto com resolução menor (480x360) para dobrar a velocidade
-                // do envio, decodificação e detecção de rosto no servidor!
                 const targetWidth = 480;
                 const targetHeight = 360;
 
@@ -685,11 +988,8 @@
                     hiddenCanvas.height = targetHeight;
                 }
 
-                // Desenha a webcam redimensionada no canvas OCULTO
                 hiddenCtx.drawImage(webcamVideo, 0, 0, targetWidth, targetHeight);
-
-                // Extrai blob JPEG bem leve
-                hiddenCanvas.toBlob((blob) => {
+                hiddenCanvas.toBlob(blob => {
                     if (blob) {
                         isWaitingForServer = true;
                         ws.send(blob);
@@ -700,17 +1000,13 @@
             requestAnimationFrame(sendFrameLoop);
         }
 
-        // Se o usuário mudar o toggle no meio, reinicia o WS
         enhanceToggle.addEventListener('change', () => {
             if (isStreaming) {
-                ws.close(); // Isso vai dar trigger no onclose, mas vamos reconectar manualmente rápido
+                ws.close();
                 isStreaming = false;
-                videoOverlay.innerText = "Reconectando com novas configs...";
+                videoOverlay.innerText = "Ajustando pipeline em HD...";
                 videoOverlay.classList.remove('hidden');
-
-                setTimeout(() => {
-                    connectWebSocket();
-                }, 500);
+                setTimeout(connectWebSocket, 400);
             }
         });
     </script>
