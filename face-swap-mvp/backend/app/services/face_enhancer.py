@@ -127,9 +127,9 @@ class FaceEnhancer:
                 self._model_loaded = True
             except Exception:
                 logger.exception("Falha ao carregar modelo GFPGAN.")
+                self._model_loaded = False
                 self._session = None
                 self._input_name = None
-                self._model_loaded = False
                 raise
 
     # -------------------------------------------------------
